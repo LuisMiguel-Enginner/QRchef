@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel do Cliente | QRchef</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background-color: var(--black); margin: 0; padding: 0; }
+        
+        .dashboard-header-top {
+            background: var(--dark-gray);
+            border-bottom: 1px solid var(--glass-border);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+        }
+
+        .header-inner {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-nav-center {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 32px;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--gray);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: all 0.3s;
+            padding: 10px 0;
+            white-space: nowrap;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: var(--primary);
+        }
+
+        .nav-link.active {
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .header-profile {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .user-meta {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name { font-size: 14px; font-weight: 800; color: white; }
+        .user-email { font-size: 11px; color: var(--gray); }
+
+        .btn-logout {
+            background: transparent;
+            border: 1px solid rgba(255, 51, 51, 0.3);
+            color: #ff3333;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-logout:hover {
+            background: #ff3333;
+            color: white;
+            border-color: #ff3333;
+        }
+
+        .main-content {
+            padding: 120px 40px 48px; /* Ajustado para dar espaço ao header fixo */
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section-view { display: none; }
+        .section-view.active { display: block; }
+
+        /* Estilos de Card e Grid */
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 32px;
+        }
+
+        .card {
+            background: var(--dark-gray);
+            border-radius: 20px;
+            padding: 32px;
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover { border-color: var(--primary); transform: translateY(-5px); }
+
+        /* Estilos do Carrinho */
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: var(--glass);
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+
+        /* Admin Styles */
+        .admin-only { display: none; }
+        body.is-admin .user-only { display: none; }
+        body.is-admin .admin-only { display: block; }
+
+        .admin-notif-badge {
+            background: #ff3333;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            position: absolute;
+            top: 20px;
+            right: -15px;
+        }
+    </style>
+</head>
+<body class="dashboard-body">
+    <header class="dashboard-header-top">
+        <div class="header-inner">
+            <a href="../index.html" class="logo">QR<span>chef</span></a>
+            
+            <div class="header-nav-center">
+                <!-- Menu do Cliente -->
+                <div class="nav-menu user-only">
+                    <a href="#" class="nav-link active" onclick="showSection('inicio')">Início</a>
+                    <a href="#" class="nav-link" onclick="showSection('servicos')">O que fazemos</a>
+                    <a href="#" class="nav-link" onclick="showSection('planos')">Planos</a>
+                    <a href="#" class="nav-link" onclick="showSection('suporte')">Suporte</a>
+                    <a href="#" class="nav-link" onclick="showSection('carrinho')"><i class="fas fa-shopping-cart"></i></a>
+                </div>
+
+                <!-- Menu do Admin -->
+                <div class="nav-menu admin-only">
+                    <a href="#" class="nav-link active" onclick="showSection('admin-home')">Visão Geral</a>
+                    <a href="#" class="nav-link" onclick="showSection('admin-clientes')">Clientes</a>
+                    <a href="#" class="nav-link" onclick="showSection('admin-sistemas')">Subir Sistemas</a>
+                    <a href="#" class="nav-link" onclick="showSection('admin-suporte')" style="position: relative;">
+                        Notificações <span class="admin-notif-badge" id="notifBadge">0</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="header-profile">
+                <div class="user-meta">
+                    <span class="user-name" id="userNameDisplay">Carregando...</span>
+                    <span class="user-email" id="userEmailDisplay">...</span>
+                </div>
+                <button id="logoutBtn" class="btn-logout" title="Sair">
+                    <i class="fas fa-power-off"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <!-- SEÇÃO: INÍCIO (CLIENTE) -->
+        <section id="inicio" class="section-view user-only active">
+            <h1 class="syne" style="margin-bottom: 32px;">Olá, <span id="welcomeName">Restaurante</span>!</h1>
+            <div class="grid-3">
+                <div class="card">
+                    <i class="fas fa-rocket" style="font-size: 32px; color: var(--primary); margin-bottom: 20px;"></i>
+                    <h3 class="syne">Meus Sistemas</h3>
+                    <p style="color: var(--gray); margin-top: 10px;">Você ainda não adquiriu nenhum sistema de cardápio. Explore nossos planos para começar!</p>
+                </div>
+                <div class="card">
+                    <i class="fas fa-history" style="font-size: 32px; color: var(--primary); margin-bottom: 20px;"></i>
+                    <h3 class="syne">Últimos Pedidos</h3>
+                    <p style="color: var(--gray); margin-top: 10px;">Nenhum pedido realizado recentemente.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEÇÃO: O QUE FAZEMOS -->
+        <section id="servicos" class="section-view user-only">
+            <h2 class="syne" style="margin-bottom: 32px;">O Que a QRchef Faz por Você?</h2>
+            <div class="grid-3">
+                <div class="card">
+                    <h3>Desenvolvimento de Cardápios</h3>
+                    <p style="color: var(--gray); margin-top: 15px;">Criamos sistemas de cardápios digitais personalizados, rápidos e otimizados para converter mais vendas.</p>
+                </div>
+                <div class="card">
+                    <h3>Integração com QR Code</h3>
+                    <p style="color: var(--gray); margin-top: 15px;">Geramos e configuramos toda a estrutura de QR Codes para as mesas do seu restaurante.</p>
+                </div>
+                <div class="card">
+                    <h3>Hospedagem & Manutenção</h3>
+                    <p style="color: var(--gray); margin-top: 15px;">Garantimos que seu cardápio esteja sempre online e atualizado com o que há de mais moderno.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEÇÃO: PLANOS (CLIENTE) -->
+        <section id="planos" class="section-view user-only">
+            <h2 class="syne" style="margin-bottom: 32px;">Escolha seu Sistema</h2>
+            <div class="grid-3">
+                <div class="card">
+                    <span class="price-tag">BASIC</span>
+                    <h2 class="syne" style="margin: 15px 0;">R$ 49,00<span>/mês</span></h2>
+                    <ul style="list-style: none; color: var(--gray); margin: 20px 0;">
+                        <li><i class="fas fa-check" style="color: var(--primary);"></i> Até 20 Itens</li>
+                        <li><i class="fas fa-check" style="color: var(--primary);"></i> QR Code Individual</li>
+                    </ul>
+                    <button class="btn-primary" style="width: 100%;">Adicionar ao Carrinho</button>
+                </div>
+                <div class="card" style="border-color: var(--primary);">
+                    <span class="price-tag">PRO</span>
+                    <h2 class="syne" style="margin: 15px 0;">R$ 99,00<span>/mês</span></h2>
+                    <ul style="list-style: none; color: var(--gray); margin: 20px 0;">
+                        <li><i class="fas fa-check" style="color: var(--primary);"></i> Itens Ilimitados</li>
+                        <li><i class="fas fa-check" style="color: var(--primary);"></i> Suporte WhatsApp</li>
+                    </ul>
+                    <button class="btn-primary" style="width: 100%;">Adicionar ao Carrinho</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEÇÃO: SUPORTE -->
+        <section id="suporte" class="section-view user-only">
+            <h2 class="syne" style="margin-bottom: 32px;">Central de Ajuda</h2>
+            <div class="card" style="max-width: 600px;">
+                <form id="supportForm">
+                    <div class="form-group">
+                        <label>Assunto</label>
+                        <input type="text" placeholder="Como podemos ajudar?">
+                    </div>
+                    <div class="form-group">
+                        <label>Mensagem</label>
+                        <textarea style="width: 100%; background: var(--glass); border: 1px solid var(--glass-border); border-radius: 8px; color: white; padding: 15px; min-height: 150px;"></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary">Enviar Mensagem</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- SEÇÃO: CARRINHO -->
+        <section id="carrinho" class="section-view user-only">
+            <h2 class="syne" style="margin-bottom: 32px;">Seu Carrinho</h2>
+            <div class="card" style="max-width: 800px;">
+                <div id="cartEmpty" class="empty-state" style="text-align: center; padding: 40px;">
+                    <i class="fas fa-shopping-basket" style="font-size: 48px; opacity: 0.2; margin-bottom: 20px;"></i>
+                    <p>Seu carrinho está vazio.</p>
+                    <button onclick="showSection('planos')" class="btn-primary" style="margin-top: 20px;">Ver Planos</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEÇÕES ADMIN (Simplificadas para o novo modelo) -->
+        <section id="admin-home" class="section-view admin-only">
+            <h1 class="syne">Visão Geral da Plataforma</h1>
+            <div class="grid-3" style="margin-top: 32px;">
+                <div class="card"><h3>Total Clientes</h3><h2>48</h2></div>
+                <div class="card"><h3>Vendas Hoje</h3><h2>R$ 1.250</h2></div>
+                <div class="card"><h3>Tickets Abertos</h3><h2>3</h2></div>
+            </div>
+        </section>
+        
+        <!-- ... outras seções admin seguirão a mesma lógica ... -->
+
+    </main>
+
+    <script src="../js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('qrchef_token');
+            const userStr = localStorage.getItem('qrchef_user');
+            
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                document.getElementById('userNameDisplay').textContent = user.name;
+                document.getElementById('welcomeName').textContent = user.name;
+                document.getElementById('userEmailDisplay').textContent = user.email;
+                
+                if (user.email === 'admin@sistema.com') {
+                    document.body.classList.add('is-admin');
+                    showSection('admin-home');
+                }
+            }
+        });
+
+        function showSection(sectionId) {
+            // Remove active de todos os links e seções
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            document.querySelectorAll('.section-view').forEach(s => s.classList.remove('active'));
+            
+            // Ativa o correto
+            const targetLink = document.querySelector(`.nav-link[onclick="showSection('${sectionId}')"]`);
+            if (targetLink) targetLink.classList.add('active');
+            
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) targetSection.classList.add('active');
+        }
+
+        document.getElementById('logoutBtn')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.removeItem('qrchef_token');
+            localStorage.removeItem('qrchef_user');
+            window.location.href = 'login.html';
+        });
+    </script>
+</body>
+</html>

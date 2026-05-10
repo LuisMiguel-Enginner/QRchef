@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demonstração | QRchef</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .demo-hero {
+            padding: 150px 0 80px;
+            text-align: center;
+            background: radial-gradient(circle at center, rgba(255, 92, 0, 0.1), transparent 70%);
+        }
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 40px;
+            padding: 80px 0;
+        }
+        .demo-card {
+            background: var(--dark-gray);
+            border-radius: 24px;
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
+            transition: all 0.4s ease;
+            position: relative;
+        }
+        .demo-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+        .demo-img {
+            width: 100%;
+            height: 450px;
+            object-fit: cover;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .demo-info {
+            padding: 30px;
+        }
+        .demo-tag {
+            background: var(--primary);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+        .demo-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .btn-outline {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            text-decoration: none;
+            color: white;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .btn-outline:hover {
+            background: var(--glass);
+            border-color: var(--white);
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="container nav-content">
+            <a href="../index.html" class="logo">QR<span>chef</span></a>
+            <div class="nav-links">
+                <a href="../index.html">Início</a>
+                <a href="demo.html" class="active">Demonstração</a>
+                <a href="login.html">Login</a>
+                <a href="register.html" class="btn-primary">Criar Conta</a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="demo-hero">
+        <div class="container">
+            <h1 class="syne" style="font-size: 56px;">Explore Nossos Sistemas</h1>
+            <p style="color: var(--gray); font-size: 20px; max-width: 700px; margin: 20px auto;">Escolha o modelo ideal para o seu negócio e veja como a tecnologia QRchef pode elevar o nível do seu atendimento.</p>
+        </div>
+    </section>
+
+    <div class="container">
+        <div class="demo-grid">
+            <!-- Modelo 1: Fine Dining -->
+            <div class="demo-card">
+                <span class="demo-tag">PREMIUM</span>
+                <img src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Menu Fine Dining" class="demo-img">
+                <div class="demo-info">
+                    <h3 class="syne">Elite Gastronomy</h3>
+                    <p style="color: var(--gray); margin: 10px 0;">Design minimalista e elegante para restaurantes de alta gastronomia.</p>
+                    <div class="demo-actions">
+                        <a href="#" class="btn-primary" style="flex: 2;">Visualizar Demo</a>
+                        <a href="register.html" class="btn-outline">Comprar</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modelo 2: Fast Food -->
+            <div class="demo-card">
+                <span class="demo-tag">PRO</span>
+                <img src="https://images.unsplash.com/photo-1550547660-d9450f859349?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Menu Fast Food" class="demo-img">
+                <div class="demo-info">
+                    <h3 class="syne">Quick Bite Express</h3>
+                    <p style="color: var(--gray); margin: 10px 0;">Focado em velocidade e conversão para hamburguerias e lanchonetes.</p>
+                    <div class="demo-actions">
+                        <a href="#" class="btn-primary" style="flex: 2;">Visualizar Demo</a>
+                        <a href="register.html" class="btn-outline">Comprar</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modelo 3: Cafeteria -->
+            <div class="demo-card">
+                <span class="demo-tag">BASIC</span>
+                <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Menu Cafeteria" class="demo-img">
+                <div class="demo-info">
+                    <h3 class="syne">Coffee & Co</h3>
+                    <p style="color: var(--gray); margin: 10px 0;">Layout acolhedor para cafeterias, padarias e bistrôs charmosos.</p>
+                    <div class="demo-actions">
+                        <a href="#" class="btn-primary" style="flex: 2;">Visualizar Demo</a>
+                        <a href="register.html" class="btn-outline">Comprar</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer style="margin-top: 100px;">
+        <div class="container text-center" style="padding: 60px 0; border-top: 1px solid var(--glass-border);">
+            <p style="color: var(--gray);">&copy; 2026 QRchef. Transformando o setor gastronômico.</p>
+        </div>
+    </footer>
+</body>
+</html>

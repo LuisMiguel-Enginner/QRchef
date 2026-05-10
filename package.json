@@ -1,0 +1,10 @@
+{
+  "name": "qrchef",
+  "version": "1.0.0",
+  "description": "QRchef - Cardápio Digital",
+  "scripts": {
+    "dev:backend": "npm run dev --prefix backend",
+    "migrate:backend": "npm run migrate:local --prefix backend",
+    "dev:frontend": "npx serve frontend"
+  }
+}
