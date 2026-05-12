@@ -777,7 +777,7 @@
             }, 1500);
         }
 
-        async function deleteClient(id, name) {
+        function showSection(sectionId) {
             // Remove active de todos os links e seções
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
             document.querySelectorAll('.section-view').forEach(s => s.classList.remove('active'));
@@ -793,13 +793,37 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+        async function deleteClient(id, name) {
+            if (!confirm(`Tem certeza que deseja remover o cliente "${name}"? Esta ação não pode ser desfeita.`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${CF_CONFIG.BASE_URL}/admin/clients/${id}`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    UI.showNotification('Cliente removido com sucesso!', 'success');
+                    loadAdminData(); // Recarrega a lista e estatísticas
+                } else {
+                    UI.showAlert(data.message || 'Erro ao remover cliente.');
+                }
+            } catch (error) {
+                console.error('Erro ao deletar:', error);
+                UI.showAlert('Erro de conexão ao tentar remover cliente.');
+            }
+        }
+
+        function editClient(id) {
+            alert('Funcionalidade de edição (troca de plano/status) será implementada em breve!');
+        }
+
         document.getElementById('logoutBtn')?.addEventListener('click', (e) => {
             e.preventDefault();
             AuthService.logout();
         });
     </script>
-</body>
-</html>
-
 </body>
 </html>
