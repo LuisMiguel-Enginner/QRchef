@@ -2320,6 +2320,45 @@ app.delete("/admin/clients/:id", async (c) => {
     return c.json({ success: false, message: "Erro ao remover cliente." }, 500);
   }
 });
+app.get("/admin/verify-client", async (c) => {
+  const name = c.req.query("name");
+  const email = c.req.query("email");
+  const { DB } = c.env;
+  try {
+    const client = await DB.prepare("SELECT id, name, email FROM users WHERE name = ? AND email = ?").bind(name, email).first();
+    if (client) {
+      return c.json({ success: true, client });
+    }
+    return c.json({ success: false, message: "Cliente n\xE3o encontrado no banco de dados." });
+  } catch (e) {
+    return c.json({ success: false, message: "Erro ao verificar cliente." }, 500);
+  }
+});
+app.post("/admin/deploy-system", async (c) => {
+  const { userId, templateId, features } = await c.req.json();
+  const { DB } = c.env;
+  try {
+    await DB.prepare("INSERT INTO subscriptions (user_id, plan_id, status) VALUES (?, ?, ?)").bind(userId, templateId, "active").run();
+    return c.json({ success: true, message: "Sistema implantado com sucesso!" });
+  } catch (e) {
+    console.error("Erro no deploy:", e);
+    return c.json({ success: false, message: "Erro ao realizar implanta\xE7\xE3o." }, 500);
+  }
+});
+app.get("/client/systems/:userId", async (c) => {
+  const userId = c.req.param("userId");
+  const { DB } = c.env;
+  try {
+    const systems = await DB.prepare(`
+            SELECT id, plan_id as name, status, created_at 
+            FROM subscriptions 
+            WHERE user_id = ?
+        `).bind(userId).all();
+    return c.json({ success: true, systems: systems.results || [] });
+  } catch (e) {
+    return c.json({ success: false, message: "Erro ao buscar sistemas." }, 500);
+  }
+});
 var src_default = app;
 
 // node_modules/wrangler/templates/middleware/middleware-ensure-req-body-drained.ts

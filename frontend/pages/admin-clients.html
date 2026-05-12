@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Clientes | Admin QRchef</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background-color: var(--black); margin: 0; padding: 0; color: white; }
+        
+        /* Header Replicated */
+        .dashboard-header-top {
+            background: #0d0d0d;
+            border-bottom: 1px solid var(--glass-border);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 85px;
+            z-index: 1100;
+            display: flex;
+            align-items: center;
+        }
+
+        .header-inner {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 100%;
+        }
+
+        .nav-menu { display: flex; gap: 40px; align-items: center; }
+        .nav-link {
+            color: var(--gray);
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            transition: all 0.3s ease;
+            padding: 8px 12px;
+            white-space: nowrap;
+            position: relative;
+            border-radius: 8px;
+        }
+        .nav-link:hover { color: white; background: rgba(255, 255, 255, 0.05); }
+        .nav-link.active { color: var(--primary); }
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0px;
+            left: 12px;
+            right: 12px;
+            height: 2px;
+            background: var(--primary);
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 130px 40px 60px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .page-title {
+            font-size: 32px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 0;
+        }
+        .page-title::before {
+            content: '';
+            width: 8px;
+            height: 32px;
+            background: var(--primary);
+            border-radius: 4px;
+        }
+
+        /* Stats Cards */
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .stat-mini-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: rgba(255, 71, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 20px;
+        }
+
+        .stat-info h4 { margin: 0; font-size: 12px; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; }
+        .stat-info span { font-size: 24px; font-weight: 800; color: white; }
+
+        /* Clients Management Section */
+        .clients-card {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 24px;
+            border: 1px solid var(--glass-border);
+            overflow: hidden;
+        }
+
+        .filter-bar {
+            padding: 25px 32px;
+            background: rgba(255, 255, 255, 0.01);
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .search-wrapper {
+            position: relative;
+            flex: 1;
+            max-width: 400px;
+        }
+
+        .search-wrapper i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+        }
+
+        .search-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 12px 15px 12px 45px;
+            color: white;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        .search-input:focus { border-color: var(--primary); outline: none; background: rgba(255, 255, 255, 0.08); }
+
+        .filter-group { display: flex; gap: 15px; }
+
+        .select-filter {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 13px;
+            cursor: pointer;
+            appearance: none;
+            padding-right: 35px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 12px;
+        }
+
+        /* Table Styling */
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        
+        thead tr { background: rgba(255, 255, 255, 0.01); }
+        th { padding: 20px 32px; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--gray); font-weight: 700; border-bottom: 1px solid var(--glass-border); }
+        
+        td { padding: 20px 32px; border-bottom: 1px solid var(--glass-border); font-size: 14px; transition: 0.3s; }
+        tr:hover td { background: rgba(255, 255, 255, 0.01); }
+
+        .client-info { display: flex; align-items: center; gap: 15px; }
+        .client-avatar { width: 40px; height: 40px; border-radius: 10px; background: rgba(255, 255, 255, 0.05); display: flex; align-items: center; justify-content: center; font-weight: 800; color: var(--primary); border: 1px solid var(--glass-border); }
+        
+        .badge { padding: 6px 12px; border-radius: 20px; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+        .badge-premium { background: rgba(197, 160, 89, 0.15); color: #C5A059; border: 1px solid rgba(197, 160, 89, 0.2); }
+        .badge-pro { background: rgba(255, 71, 0, 0.15); color: var(--primary); border: 1px solid rgba(255, 71, 0, 0.2); }
+        .badge-basic { background: rgba(255, 255, 255, 0.05); color: var(--gray); border: 1px solid var(--glass-border); }
+        
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+        .status-active { background: #2ecc71; box-shadow: 0 0 10px rgba(46, 204, 113, 0.4); }
+        .status-inactive { background: #ff4757; }
+
+        .actions-cell { display: flex; gap: 10px; }
+        .action-btn { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; border: 1px solid var(--glass-border); background: transparent; color: var(--gray); }
+        .action-btn:hover { background: rgba(255, 255, 255, 0.05); color: white; border-color: white; }
+        .action-btn.delete:hover { background: rgba(255, 71, 87, 0.1); color: #ff4757; border-color: #ff4757; }
+
+        /* Pagination */
+        .pagination { padding: 25px 32px; display: flex; justify-content: space-between; align-items: center; color: var(--gray); font-size: 13px; }
+        .page-controls { display: flex; gap: 10px; }
+        .page-btn { padding: 8px 15px; border-radius: 8px; border: 1px solid var(--glass-border); background: transparent; color: white; cursor: pointer; transition: 0.3s; }
+        .page-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .page-btn.active { background: var(--primary); border-color: var(--primary); color: white; }
+
+        /* Profile Header */
+        .header-profile { display: flex; align-items: center; gap: 15px; padding-left: 20px; border-left: 1px solid var(--glass-border); }
+        .user-meta { text-align: right; line-height: 1.2; }
+        .user-name { display: block; font-size: 13px; font-weight: 800; }
+        .user-email { display: block; font-size: 11px; color: var(--gray); }
+        .avatar-circle { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), #ff8c00); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; }
+        .btn-logout { background: rgba(255, 51, 51, 0.1); border: 1px solid rgba(255, 51, 51, 0.2); color: #ff4757; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; }
+    </style>
+</head>
+<body>
+    <header class="dashboard-header-top">
+        <div class="header-inner">
+            <a href="dashboard.html" class="logo">QR<span>chef</span></a>
+            
+            <div class="header-nav-center nav-container">
+                <div class="nav-menu admin-only" role="menubar">
+                    <a href="dashboard.html" class="nav-link" role="menuitem">Dashboard</a>
+                    <a href="admin-clients.html" class="nav-link active" role="menuitem">Clientes</a>
+                    <a href="admin-systems-showcase.html" class="nav-link" role="menuitem">Sistemas</a>
+                    <a href="#" class="nav-link" role="menuitem" style="position: relative;">
+                        Alertas <span class="admin-notif-badge" id="notifBadge">2</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="header-profile">
+                <div class="user-meta">
+                    <span class="user-name" id="userNameDisplay">Admin Sistema</span>
+                    <span class="user-email" id="userEmailDisplay">adminsistema@sistema.com</span>
+                </div>
+                <div class="avatar-circle" id="userAvatar">A</div>
+                <button id="logoutBtn" class="btn-logout" title="Sair"><i class="fas fa-power-off"></i></button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="page-header">
+            <h1 class="page-title syne">Gestão de Clientes</h1>
+            <a href="admin-new-client.html" class="btn-primary" style="text-decoration: none; padding: 12px 24px;">
+                <i class="fas fa-plus" style="margin-right: 10px;"></i> Adicionar Parceiro
+            </a>
+        </div>
+
+        <!-- Summary Stats -->
+        <div class="stats-overview">
+            <div class="stat-mini-card">
+                <div class="stat-icon"><i class="fas fa-users"></i></div>
+                <div class="stat-info">
+                    <h4>Total</h4>
+                    <span id="totalClientsCount">...</span>
+                </div>
+            </div>
+            <div class="stat-mini-card">
+                <div class="stat-icon" style="color: #2ecc71; background: rgba(46, 204, 113, 0.1);"><i class="fas fa-check-circle"></i></div>
+                <div class="stat-info">
+                    <h4>Ativos</h4>
+                    <span id="activeClientsCount">...</span>
+                </div>
+            </div>
+            <div class="stat-mini-card">
+                <div class="stat-icon" style="color: #C5A059; background: rgba(197, 160, 89, 0.1);"><i class="fas fa-crown"></i></div>
+                <div class="stat-info">
+                    <h4>Premium</h4>
+                    <span id="premiumClientsCount">...</span>
+                </div>
+            </div>
+            <div class="stat-mini-card">
+                <div class="stat-icon" style="color: #3498db; background: rgba(52, 152, 219, 0.1);"><i class="fas fa-rocket"></i></div>
+                <div class="stat-info">
+                    <h4>Novos</h4>
+                    <span>2</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="clients-card">
+            <div class="filter-bar">
+                <div class="search-wrapper">
+                    <i class="fas fa-search"></i>
+                    <input type="text" class="search-input" placeholder="Buscar por nome ou e-mail..." id="clientSearchInput" onkeyup="filterClients(this.value)">
+                </div>
+                
+                <div class="filter-group">
+                    <select class="select-filter" id="planFilter">
+                        <option value="all">Todos os Planos</option>
+                        <option value="premium">Premium</option>
+                        <option value="pro">Professional</option>
+                        <option value="basic">Basic</option>
+                    </select>
+                    <select class="select-filter" id="statusFilter">
+                        <option value="all">Todos os Status</option>
+                        <option value="active">Ativos</option>
+                        <option value="inactive">Inativos</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Informações do Cliente</th>
+                            <th>Plano</th>
+                            <th>Status</th>
+                            <th>Cadastro</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="clientsTableBody">
+                        <!-- Conteúdo carregado via JS -->
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 60px; color: var(--gray);">
+                                <i class="fas fa-spinner fa-spin" style="font-size: 24px; margin-bottom: 15px; display: block;"></i>
+                                Sincronizando com o banco de dados...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination">
+                <span id="paginationInfo">Mostrando 1-10 de ... clientes</span>
+                <div class="page-controls">
+                    <button class="page-btn"><i class="fas fa-chevron-left"></i></button>
+                    <button class="page-btn active">1</button>
+                    <button class="page-btn">2</button>
+                    <button class="page-btn"><i class="fas fa-chevron-right"></i></button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/auth.js"></script>
+    <script>
+        let allClients = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const userStr = localStorage.getItem('qrchef_user');
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                document.getElementById('userNameDisplay').textContent = user.name;
+                document.getElementById('userEmailDisplay').textContent = user.email;
+                document.getElementById('userAvatar').textContent = user.name.charAt(0).toUpperCase();
+            }
+            loadClientsData();
+        });
+
+        async function loadClientsData() {
+            try {
+                // Carregar estatísticas
+                const statsRes = await fetch(`${CF_CONFIG.BASE_URL}/admin/stats`);
+                const statsData = await statsRes.json();
+                if (statsData.success) {
+                    document.getElementById('totalClientsCount').textContent = statsData.stats.totalClients;
+                    document.getElementById('activeClientsCount').textContent = statsData.stats.activeSystems; // Simplificado
+                    document.getElementById('premiumClientsCount').textContent = Math.floor(statsData.stats.totalClients * 0.3); // Simulado
+                }
+
+                // Carregar lista completa
+                const clientsRes = await fetch(`${CF_CONFIG.BASE_URL}/admin/clients`);
+                const clientsData = await clientsRes.json();
+                
+                if (clientsData.success) {
+                    allClients = clientsData.clients;
+                    renderTable(allClients);
+                    document.getElementById('paginationInfo').textContent = `Mostrando ${allClients.length} de ${allClients.length} clientes`;
+                }
+            } catch (error) {
+                console.error('Erro ao carregar clientes:', error);
+            }
+        }
+
+        function renderTable(clients) {
+            const body = document.getElementById('clientsTableBody');
+            if (clients.length === 0) {
+                body.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:40px; color:var(--gray);">Nenhum cliente localizado com estes filtros.</td></tr>`;
+                return;
+            }
+
+            body.innerHTML = clients.map(c => `
+                <tr>
+                    <td>
+                        <div class="client-info">
+                            <div class="client-avatar">${c.name.charAt(0).toUpperCase()}</div>
+                            <div>
+                                <strong style="display: block; color: white;">${c.name}</strong>
+                                <small style="color: var(--gray);">${c.email}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge ${c.plan === 'premium' ? 'badge-premium' : (c.plan === 'pro' ? 'badge-pro' : 'badge-basic')}">
+                            ${c.plan || 'SEM PLANO'}
+                        </span>
+                    </td>
+                    <td>
+                        <span style="display: flex; align-items: center;">
+                            <span class="status-dot ${c.status === 'active' ? 'status-active' : 'status-inactive'}"></span>
+                            ${c.status === 'active' ? 'Ativo' : 'Inativo'}
+                        </span>
+                    </td>
+                    <td style="color: var(--gray); font-size: 13px;">
+                        ${new Date().toLocaleDateString('pt-BR')}
+                    </td>
+                    <td>
+                        <div class="actions-cell">
+                            <button class="action-btn" title="Ver Sistemas" onclick="viewSystems('${c.id}')"><i class="fas fa-external-link-alt"></i></button>
+                            <button class="action-btn" title="Editar" onclick="editClient('${c.id}')"><i class="fas fa-pen"></i></button>
+                            <button class="action-btn delete" title="Excluir" onclick="deleteClient('${c.id}', '${c.name}')"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function filterClients(query) {
+            const filtered = allClients.filter(c => 
+                c.name.toLowerCase().includes(query.toLowerCase()) || 
+                c.email.toLowerCase().includes(query.toLowerCase())
+            );
+            renderTable(filtered);
+        }
+
+        async function deleteClient(id, name) {
+            if (confirm(`Remover cliente "${name}"? Esta ação é permanente.`)) {
+                try {
+                    const res = await fetch(`${CF_CONFIG.BASE_URL}/admin/clients/${id}`, { method: 'DELETE' });
+                    const data = await res.json();
+                    if (data.success) {
+                        UI.showNotification('Cliente removido com sucesso!', 'success');
+                        loadClientsData();
+                    }
+                } catch (e) { console.error(e); }
+            }
+        }
+
+        function viewSystems(id) { alert('Abrindo lista de sistemas do cliente...'); }
+        function editClient(id) { alert('Abrindo editor de cliente...'); }
+
+        document.getElementById('logoutBtn')?.addEventListener('click', () => AuthService.logout());
+    </script>
+</body>
+</html>

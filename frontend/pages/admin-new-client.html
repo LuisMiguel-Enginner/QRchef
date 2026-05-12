@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Novo Cliente | Admin QRchef</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background-color: var(--black); margin: 0; padding: 0; color: white; }
+        .main-content { padding: 130px 40px 60px; max-width: 800px; margin: 0 auto; }
+        .page-title { font-size: 32px; font-weight: 800; margin-bottom: 40px; display: flex; align-items: center; gap: 15px; }
+        .page-title::before { content: ''; width: 8px; height: 32px; background: var(--primary); border-radius: 4px; }
+        .card { background: rgba(255, 255, 255, 0.03); border-radius: 24px; padding: 40px; border: 1px solid var(--glass-border); }
+        .form-group { margin-bottom: 24px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 700; color: var(--gray); margin-bottom: 10px; text-transform: uppercase; }
+        .form-control { width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); border-radius: 12px; padding: 15px 20px; color: white; font-size: 15px; transition: 0.3s; }
+        .form-control:focus { border-color: var(--primary); outline: none; background: rgba(255, 255, 255, 0.08); }
+        .back-link { display: inline-flex; align-items: center; gap: 8px; color: var(--gray); text-decoration: none; margin-bottom: 20px; font-weight: 600; transition: 0.3s; }
+        .back-link:hover { color: white; }
+        
+        .password-container { position: relative; }
+        .password-toggle { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--gray); }
+    </style>
+</head>
+<body>
+    <main class="main-content">
+        <a href="dashboard.html" class="back-link"><i class="fas fa-arrow-left"></i> Voltar ao Painel</a>
+        <h1 class="page-title syne">Cadastrar Novo Cliente</h1>
+        
+        <div class="card">
+            <h3 class="syne" style="margin-bottom: 30px;">Informações do Restaurante</h3>
+            <form id="newClientForm">
+                <div class="form-group">
+                    <label>Nome do Estabelecimento</label>
+                    <input type="text" class="form-control" id="clientName" placeholder="Ex: Pizzaria Bella Italia" required>
+                </div>
+                <div class="form-group">
+                    <label>E-mail de Acesso</label>
+                    <input type="email" class="form-control" id="clientEmail" placeholder="contato@pizzaria.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Senha Provisória</label>
+                    <div class="password-container">
+                        <input type="password" class="form-control" id="clientPassword" placeholder="Defina uma senha" required>
+                        <i class="fas fa-eye password-toggle" id="togglePassword"></i>
+                    </div>
+                    <small style="color: var(--gray); display: block; margin-top: 10px; font-size: 11px;">O cliente poderá alterar esta senha no primeiro acesso.</small>
+                </div>
+
+                <button type="submit" class="btn-primary" id="saveBtn" style="margin-top: 20px; padding: 18px 40px; width: 100%;">
+                    <i class="fas fa-user-plus" style="margin-right: 10px;"></i> Finalizar Cadastro do Cliente
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <script src="../js/auth.js"></script>
+    <script>
+        console.log("Script de cadastro carregado. API Base:", CF_CONFIG.BASE_URL);
+
+        // Toggle Password Visibility
+        const togglePasswordIcon = document.getElementById('togglePassword');
+        const passwordInputEl = document.getElementById('clientPassword');
+
+        if (togglePasswordIcon && passwordInputEl) {
+            togglePasswordIcon.addEventListener('click', function() {
+                const type = passwordInputEl.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInputEl.setAttribute('type', type);
+                this.classList.toggle('fa-eye-slash');
+            });
+        }
+
+        // Form Submission
+        const newClientForm = document.getElementById('newClientForm');
+        if (newClientForm) {
+            newClientForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                console.log("Iniciando processo de cadastro...");
+
+                const name = document.getElementById('clientName').value.trim();
+                const email = document.getElementById('clientEmail').value.trim();
+                const password = document.getElementById('clientPassword').value.trim();
+
+                if (!name || !email || !password) {
+                    UI.showAlert('Por favor, preencha todos os campos.', 'error');
+                    return;
+                }
+
+                const btnText = "Finalizar Cadastro do Cliente";
+                UI.setLoading('saveBtn', true, btnText);
+
+                try {
+                    console.log("Enviando requisição para:", `${CF_CONFIG.BASE_URL}/auth/register`);
+                    const response = await fetch(`${CF_CONFIG.BASE_URL}/auth/register`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name, email, password })
+                    });
+                    
+                    const data = await response.json();
+                    console.log("Resposta do servidor:", data);
+
+                    if (response.ok && data.success) {
+                        UI.showNotification('Cliente cadastrado com sucesso!', 'success');
+                        setTimeout(() => {
+                            window.location.href = 'dashboard.html';
+                        }, 1500);
+                    } else {
+                        UI.showAlert(data.message || 'Erro ao cadastrar cliente.', 'error');
+                        UI.setLoading('saveBtn', false, btnText);
+                    }
+                } catch (error) {
+                    console.error('Erro detalhado no cadastro:', error);
+                    UI.showAlert('Não foi possível conectar ao servidor. Verifique sua conexão.', 'error');
+                    UI.setLoading('saveBtn', false, btnText);
+                }
+            });
+        }
+    </script>
+</body>
+</html>

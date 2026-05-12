@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subir Novo Sistema | Admin QRchef</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background-color: var(--black); margin: 0; padding: 0; color: white; }
+        .main-content { padding: 130px 40px 60px; max-width: 1000px; margin: 0 auto; }
+        .page-title { font-size: 32px; font-weight: 800; margin-bottom: 40px; display: flex; align-items: center; gap: 15px; }
+        .page-title::before { content: ''; width: 8px; height: 32px; background: var(--primary); border-radius: 4px; }
+        .card { background: rgba(255, 255, 255, 0.03); border-radius: 24px; padding: 40px; border: 1px solid var(--glass-border); }
+        .form-group { margin-bottom: 24px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 700; color: var(--gray); margin-bottom: 10px; text-transform: uppercase; }
+        .form-control { width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); border-radius: 12px; padding: 15px 20px; color: white; font-size: 15px; transition: 0.3s; }
+        .form-control:focus { border-color: var(--primary); outline: none; background: rgba(255, 255, 255, 0.08); }
+        
+        /* Estilização do Select */
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 20px center;
+            background-size: 16px;
+            padding-right: 45px;
+            cursor: pointer;
+        }
+
+        /* Estilização das opções (limitada pelo navegador, mas ajuda no fundo escuro) */
+        select.form-control option {
+            background-color: #1a1a1a;
+            color: white;
+            padding: 10px;
+        }
+        .back-link { display: inline-flex; align-items: center; gap: 8px; color: var(--gray); text-decoration: none; margin-bottom: 20px; font-weight: 600; transition: 0.3s; }
+        .back-link:hover { color: white; }
+
+        /* Estilos de Status de Verificação */
+        .verification-status {
+            font-size: 12px;
+            margin-top: 8px;
+            display: none;
+            align-items: center;
+            gap: 6px;
+        }
+        .status-success { color: #2ecc71; }
+        .status-error { color: #ff4757; }
+    </style>
+</head>
+<body>
+    <main class="main-content">
+        <a href="dashboard.html" class="back-link"><i class="fas fa-arrow-left"></i> Voltar ao Painel</a>
+        <h1 class="page-title syne">Subir Novo Sistema</h1>
+        
+        <div class="card">
+            <h3 class="syne" style="margin-bottom: 20px;">Configurar Nova Implantação</h3>
+            <form id="deploySystemForm">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="form-group">
+                        <label>Nome do Estabelecimento</label>
+                        <input type="text" class="form-control" id="clientName" placeholder="Ex: Sushi Master" required>
+                    </div>
+                    <div class="form-group">
+                        <label>E-mail do Cliente</label>
+                        <input type="email" class="form-control" id="clientEmail" placeholder="cliente@email.com" required>
+                    </div>
+                </div>
+                
+                <div id="verifyStatus" class="verification-status" style="margin-bottom: 24px; padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.03);">
+                    <i class="fas fa-info-circle"></i>
+                    <span id="statusText">Verificando cliente...</span>
+                </div>
+
+                <div class="form-group">
+                    <label>Template Base</label>
+                    <select class="form-control" id="templateId" style="appearance: none; cursor: pointer;">
+                        <option value="elite">Elite Gastronomy (Dark Mode)</option>
+                        <option value="quick">Quick Bite Express (Fast Food)</option>
+                        <option value="coffee">Coffee & Co (Cafeteria)</option>
+                        <option value="premium">Sushi Master Pro (Oriental)</option>
+                        <option value="basic">Green Garden (Saudável)</option>
+                        <option value="pro">Pizza Express (Pizzaria)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Configurações Adicionais</label>
+                    <div style="display: flex; gap: 30px; margin-top: 15px;">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; text-transform: none;">
+                            <input type="checkbox" id="featWhatsApp" checked> Pedidos via WhatsApp
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; text-transform: none;">
+                            <input type="checkbox" id="featPayment"> Pagamento Online
+                        </label>
+                    </div>
+                </div>
+                <button type="submit" class="btn-primary" id="deployBtn" style="margin-top: 20px; padding: 18px 40px; width: 100%; opacity: 0.5; cursor: not-allowed;" disabled>
+                    <i class="fas fa-cloud-upload-alt" style="margin-right: 10px;"></i> Iniciar Implantação do Sistema
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <script src="../js/auth.js"></script>
+    <script>
+        let verifiedUserId = null;
+        let timeout = null;
+
+        const nameInput = document.getElementById('clientName');
+        const emailInput = document.getElementById('clientEmail');
+        const statusDiv = document.getElementById('verifyStatus');
+        const statusText = document.getElementById('statusText');
+        const deployBtn = document.getElementById('deployBtn');
+
+        // Função para pegar parâmetros da URL
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            var results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
+
+        // Função para verificar cliente
+        async function verifyClient() {
+            const name = nameInput.value.trim();
+            const email = emailInput.value.trim();
+
+            if (name === '' && email === '') {
+                statusDiv.style.display = 'none';
+                deployBtn.disabled = true;
+                deployBtn.style.opacity = '0.5';
+                deployBtn.style.cursor = 'not-allowed';
+                return;
+            }
+
+            statusDiv.style.display = 'flex';
+            statusDiv.className = 'verification-status';
+
+            if (name.length < 3) {
+                statusDiv.classList.add('status-error');
+                statusText.textContent = 'O nome do estabelecimento deve ter pelo menos 3 caracteres.';
+                deployBtn.disabled = true;
+                deployBtn.style.opacity = '0.5';
+                return;
+            }
+
+            if (!email.includes('@')) {
+                statusDiv.classList.add('status-error');
+                statusText.textContent = 'Por favor, insira um e-mail válido.';
+                deployBtn.disabled = true;
+                deployBtn.style.opacity = '0.5';
+                return;
+            }
+
+            statusText.textContent = 'Verificando disponibilidade no banco de dados...';
+
+            try {
+                const response = await fetch(`${CF_CONFIG.BASE_URL}/admin/verify-client?name=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    verifiedUserId = data.client.id;
+                    statusDiv.className = 'verification-status status-success';
+                    statusText.textContent = `Cliente localizado: ${data.client.name}`;
+                    deployBtn.disabled = false;
+                    deployBtn.style.opacity = '1';
+                    deployBtn.style.cursor = 'pointer';
+                } else {
+                    verifiedUserId = null;
+                    statusDiv.className = 'verification-status status-error';
+                    statusText.textContent = 'Usuário não encontrado: Certifique-se de que o cliente já possui uma conta cadastrada com este nome e e-mail.';
+                    deployBtn.disabled = true;
+                    deployBtn.style.opacity = '0.5';
+                    deployBtn.style.cursor = 'not-allowed';
+                }
+            } catch (error) {
+                statusDiv.className = 'verification-status status-error';
+                statusText.textContent = 'Erro de conexão: Não foi possível validar os dados agora.';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const template = getUrlParameter('template');
+            if (template) {
+                const select = document.getElementById('templateId');
+                for (let i = 0; i < select.options.length; i++) {
+                    if (select.options[i].value === template) {
+                        select.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+        });
+
+        [nameInput, emailInput].forEach(input => {
+            input.addEventListener('input', () => {
+                clearTimeout(timeout);
+                timeout = setTimeout(verifyClient, 800);
+            });
+        });
+
+        document.getElementById('deploySystemForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!verifiedUserId) return;
+
+            const originalBtnText = deployBtn.innerHTML;
+            deployBtn.disabled = true;
+            deployBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Implantando...';
+
+            const payload = {
+                userId: verifiedUserId,
+                templateId: document.getElementById('templateId').value,
+                features: {
+                    whatsapp: document.getElementById('featWhatsApp').checked,
+                    payment: document.getElementById('featPayment').checked
+                }
+            };
+
+            try {
+                const response = await fetch(`${CF_CONFIG.BASE_URL}/admin/deploy-system`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('Sucesso! O sistema foi implantado e já está disponível no painel do cliente.');
+                    window.location.href = 'dashboard.html';
+                } else {
+                    alert(data.message || 'Erro ao realizar implantação.');
+                    deployBtn.disabled = false;
+                    deployBtn.innerHTML = originalBtnText;
+                }
+            } catch (error) {
+                alert('Erro de conexão com o servidor.');
+                deployBtn.disabled = false;
+                deployBtn.innerHTML = originalBtnText;
+            }
+        });
+    </script>
+</body>
+</html>

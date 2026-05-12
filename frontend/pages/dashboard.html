@@ -60,35 +60,46 @@
 
         .nav-menu {
             display: flex;
-            gap: 60px; /* Aumentado drasticamente para evitar qualquer sobreposição */
+            gap: 40px; /* Espaçamento equilibrado entre os itens */
             align-items: center;
         }
 
         .nav-link {
             color: var(--gray);
             text-decoration: none;
-            font-size: 12px;
+            font-size: 11px; /* Tamanho ligeiramente menor para elegância */
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.15em; /* Aumentado o espaçamento entre letras */
+            letter-spacing: 0.2em; /* Maior espaçamento entre letras para legibilidade */
             transition: all 0.3s ease;
-            padding: 10px 0;
+            padding: 8px 12px; /* Padding interno para maior área de clique e separação visual */
             white-space: nowrap;
             position: relative;
-            display: inline-block; /* Garante que o padding e margens funcionem bem */
+            display: inline-block;
+            border-radius: 8px;
         }
 
-        .nav-link:hover { color: white; }
+        .nav-link:hover { 
+            color: white;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
         .nav-link.active { color: var(--primary); }
         .nav-link.active::after {
             content: '';
             position: absolute;
-            bottom: -8px;
-            left: 0;
-            width: 100%;
+            bottom: 0px;
+            left: 12px;
+            right: 12px;
             height: 2px;
             background: var(--primary);
             box-shadow: 0 0 10px var(--primary);
+        }
+
+        /* Remove a borda de foco ao clicar */
+        .nav-link:focus {
+            outline: none !important;
+            box-shadow: none !important;
         }
 
         /* Profile Area */
@@ -213,6 +224,7 @@
             background: linear-gradient(135deg, rgba(255, 71, 0, 0.05) 0%, transparent 100%);
             opacity: 0;
             transition: 0.4s;
+            pointer-events: none; /* Garante que o efeito não bloqueie os cliques nos botões/links */
         }
 
         .card:hover { 
@@ -328,7 +340,7 @@
 <body class="dashboard-body">
     <header class="dashboard-header-top">
         <div class="header-inner">
-            <a href="../index.html" class="logo">QR<span>chef</span></a>
+            <a href="dashboard.html" class="logo">QR<span>chef</span></a>
             
             <div class="header-nav-center nav-container">
                 <!-- Menu do Cliente -->
@@ -344,10 +356,10 @@
 
                 <!-- Menu do Admin -->
                 <div class="nav-menu admin-only" role="menubar">
-                    <a href="#" class="nav-link active" onclick="showSection('admin-home')" role="menuitem">Dashboard</a>
-                    <a href="#" class="nav-link" onclick="showSection('admin-clientes')" role="menuitem">Clientes</a>
-                    <a href="#" class="nav-link" onclick="showSection('admin-sistemas')" role="menuitem">Sistemas</a>
-                    <a href="#" class="nav-link" onclick="showSection('admin-suporte')" role="menuitem" style="position: relative;">
+                    <a href="dashboard.html" class="nav-link active" role="menuitem">Dashboard</a>
+                    <a href="admin-clients.html" class="nav-link" role="menuitem">Clientes</a>
+                    <a href="admin-systems-showcase.html" class="nav-link" role="menuitem">Sistemas</a>
+                    <a href="#" class="nav-link" role="menuitem" style="position: relative;">
                         Alertas <span class="admin-notif-badge" id="notifBadge">2</span>
                     </a>
                 </div>
@@ -428,9 +440,9 @@
                 </div>
                 <div class="card">
                     <h3 class="syne">Ações Rápidas</h3>
-                    <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 20px;">
-                        <button class="btn-primary" style="width: 100%;" onclick="showSection('admin-sistemas')">Subir Novo Sistema</button>
-                        <button class="btn-primary" style="width: 100%; background: transparent; border: 1px solid var(--primary);" onclick="showSection('admin-relatorios')">Gerar Relatório PDF</button>
+                    <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 20px; position: relative; z-index: 10;">
+                        <a href="admin-systems-showcase.html" class="btn-primary" style="width: 100%; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; z-index: 20;">Ver Catálogo de Sistemas</a>
+                        <a href="admin-reports.html" class="btn-primary" style="width: 100%; background: transparent; border: 1px solid var(--primary); text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; z-index: 20;">Gerar Relatório PDF</a>
                     </div>
                 </div>
             </div>
@@ -444,7 +456,7 @@
                     <h3 class="syne" style="margin: 0;">Lista de Parceiros</h3>
                     <div style="display: flex; gap: 10px;">
                         <input type="text" placeholder="Buscar cliente..." class="form-control" style="width: 250px; padding: 10px 15px; font-size: 13px;" id="clientSearchInput" onkeyup="filterClients(this.value)">
-                        <button class="btn-primary" style="padding: 10px 20px; font-size: 13px;">+ Novo Cliente</button>
+                        <a href="admin-new-client.html" class="btn-primary" style="padding: 10px 20px; font-size: 13px; text-decoration: none; display: flex; align-items: center; justify-content: center;">+ Novo Cliente</a>
                     </div>
                 </div>
                 <div style="overflow-x: auto;">
@@ -690,12 +702,38 @@
                     document.body.classList.add('is-admin');
                     showSection('admin-home');
                     loadAdminData(); // Carrega dados reais do banco
+                } else {
+                    loadUserData(user); // Carrega dados do cliente
                 }
             }
         });
 
         // Variáveis globais para armazenar dados do admin
         let allClients = [];
+
+        async function loadUserData(user) {
+            // Carregar Sistemas do Usuário
+            try {
+                const response = await fetch(`${CF_CONFIG.BASE_URL}/client/systems/${user.id}`);
+                const data = await response.json();
+                
+                if (data.success && data.systems.length > 0) {
+                    const grid = document.querySelector('#inicio .grid-3');
+                    // Limpa o grid se houver sistemas
+                    grid.innerHTML = data.systems.map(sys => `
+                        <div class="card">
+                            <div class="card-icon"><i class="fas fa-rocket"></i></div>
+                            <h3 class="syne">${sys.name.toUpperCase()}</h3>
+                            <p>Status: <span style="color: #2ecc71; font-weight: 700;">${sys.status.toUpperCase()}</span></p>
+                            <p style="font-size: 12px; margin-top: 10px; color: var(--gray);">Implantado em: ${new Date(sys.created_at).toLocaleDateString('pt-BR')}</p>
+                            <button class="btn-primary" style="margin-top: 20px; padding: 10px 20px; width: 100%;">Acessar Painel</button>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Erro ao buscar sistemas do usuário:', error);
+            }
+        }
 
         async function loadAdminData() {
             try {

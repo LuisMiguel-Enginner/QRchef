@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vitrine de Sistemas | Admin QRchef</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background-color: var(--black); margin: 0; padding: 0; color: white; }
+        
+        /* Header Replicated */
+        .dashboard-header-top {
+            background: #0d0d0d;
+            border-bottom: 1px solid var(--glass-border);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 85px;
+            z-index: 1100;
+            display: flex;
+            align-items: center;
+        }
+
+        .header-inner {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 100%;
+        }
+
+        .nav-menu { display: flex; gap: 40px; align-items: center; }
+        .nav-link {
+            color: var(--gray);
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            transition: all 0.3s ease;
+            padding: 8px 12px;
+            white-space: nowrap;
+            position: relative;
+            border-radius: 8px;
+        }
+        .nav-link:hover { color: white; background: rgba(255, 255, 255, 0.05); }
+        .nav-link.active { color: var(--primary); }
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0px;
+            left: 12px;
+            right: 12px;
+            height: 2px;
+            background: var(--primary);
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 130px 40px 60px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            margin-bottom: 50px;
+            text-align: center;
+        }
+
+        .page-title {
+            font-size: 42px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            background: linear-gradient(to bottom, #fff 50%, rgba(255,255,255,0.7));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .page-subtitle {
+            color: var(--gray);
+            font-size: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Systems Grid */
+        .systems-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+        }
+
+        .system-card {
+            background: #111;
+            border-radius: 28px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .system-card:hover {
+            transform: translateY(-12px) scale(1.02);
+            border-color: var(--primary);
+            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.7);
+        }
+
+        .system-img-container {
+            width: 100%;
+            height: 240px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .system-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.8s ease;
+        }
+
+        .system-card:hover .system-img {
+            transform: scale(1.1);
+        }
+
+        .system-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--primary);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 100px;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            z-index: 10;
+        }
+
+        .system-info {
+            padding: 30px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .system-category {
+            color: var(--primary);
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .system-title {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: white;
+        }
+
+        .system-stats {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        .stat-value {
+            color: white;
+            font-weight: 800;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .stat-value i.fa-star {
+            color: #f1c40f;
+            font-size: 12px;
+        }
+
+        .stat-value i.fa-users {
+            color: var(--primary);
+            font-size: 12px;
+        }
+
+        .system-features {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 25px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .feature-tag {
+            background: rgba(255, 255, 255, 0.05);
+            color: #bbb;
+            font-size: 10px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            font-weight: 600;
+        }
+
+        .system-footer {
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .footer-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .system-price {
+            font-size: 20px;
+            font-weight: 800;
+            color: white;
+        }
+
+        .system-price span {
+            font-size: 12px;
+            color: var(--gray);
+            font-weight: 400;
+        }
+
+        .actions-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .btn-action {
+            padding: 12px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 700;
+            transition: 0.3s;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-demo {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            border: 1px solid var(--glass-border);
+        }
+
+        .btn-demo:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: white;
+        }
+
+        .btn-deploy {
+            background: var(--primary);
+            color: white;
+            border: 1px solid var(--primary);
+        }
+
+        .btn-deploy:hover {
+            background: #ff8c00;
+            box-shadow: 0 10px 20px -5px var(--primary-glow);
+            transform: translateY(-2px);
+        }
+
+        /* Profile Area Replicated */
+        .header-profile { display: flex; align-items: center; gap: 15px; padding-left: 20px; border-left: 1px solid var(--glass-border); }
+        .user-meta { text-align: right; line-height: 1.2; }
+        .user-name { display: block; font-size: 13px; font-weight: 800; }
+        .user-email { display: block; font-size: 11px; color: var(--gray); }
+        .avatar-circle { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), #ff8c00); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; }
+        .btn-logout { background: rgba(255, 51, 51, 0.1); border: 1px solid rgba(255, 51, 51, 0.2); color: #ff4757; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; }
+    </style>
+</head>
+<body>
+    <header class="dashboard-header-top">
+        <div class="header-inner">
+            <a href="dashboard.html" class="logo">QR<span>chef</span></a>
+            
+            <div class="header-nav-center nav-container">
+                <div class="nav-menu admin-only" role="menubar">
+                    <a href="dashboard.html" class="nav-link" role="menuitem">Dashboard</a>
+                    <a href="admin-clients.html" class="nav-link" role="menuitem">Clientes</a>
+                    <a href="admin-systems-showcase.html" class="nav-link active" role="menuitem">Sistemas</a>
+                    <a href="#" class="nav-link" role="menuitem" style="position: relative;">
+                        Alertas <span class="admin-notif-badge" id="notifBadge">2</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="header-profile">
+                <div class="user-meta">
+                    <span class="user-name">Admin Sistema</span>
+                    <span class="user-email">adminsistema@sistema.com</span>
+                </div>
+                <div class="avatar-circle">A</div>
+                <button id="logoutBtn" class="btn-logout" title="Sair"><i class="fas fa-power-off"></i></button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="page-header">
+            <h1 class="page-title syne">Sistemas Disponíveis</h1>
+            <p class="page-subtitle">Gerencie o catálogo de cardápios digitais de alta conversão da plataforma QRchef.</p>
+        </div>
+
+        <div class="systems-grid">
+            <!-- Sistema 1: Elite -->
+            <div class="system-card">
+                <div class="system-badge">Mais Vendido</div>
+                <div class="system-img-container">
+                    <img src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Elite Gastronomy" class="system-img">
+                </div>
+                <div class="system-info">
+                    <span class="system-category">Premium • Dark Mode</span>
+                    <h3 class="system-title syne">ELITE GASTRONOMY</h3>
+                    
+                    <div class="system-stats">
+                        <div class="stat-item">
+                            <span>Avaliação</span>
+                            <div class="stat-value">
+                                <i class="fas fa-star"></i> 4.9
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <span>Clientes</span>
+                            <div class="stat-value">
+                                <i class="fas fa-users"></i> 450+
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <span>Conversão</span>
+                            <div class="stat-value">
+                                <i class="fas fa-chart-line"></i> 24%
+                            </div>
+                        </div>
+                    </div>
+
+                    <ul class="system-features">
+                        <li class="feature-tag">Dark Mode</li>
+                        <li class="feature-tag">Imagens HD</li>
+                        <li class="feature-tag">Checkout</li>
+                    </ul>
+
+                    <div class="system-footer">
+                        <div class="footer-top">
+                            <div class="system-price">R$ 149,90 <span>/instalação</span></div>
+                        </div>
+                        <div class="actions-group">
+                            <a href="menu-elite.html" target="_blank" class="btn-action btn-demo">
+                                <i class="fas fa-eye"></i> Ver Demo
+                            </a>
+                            <a href="admin-deploy.html?template=elite" class="btn-action btn-deploy">
+                                <i class="fas fa-rocket"></i> Implantar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sistema 2: Quick Bite -->
+            <div class="system-card">
+                <div class="system-img-container">
+                    <img src="https://images.unsplash.com/photo-1550547660-d9450f859349?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Quick Bite Express" class="system-img">
+                </div>
+                <div class="system-info">
+                    <span class="system-category">Fast Food • Alta Conversão</span>
+                    <h3 class="system-title syne">QUICK BITE EXPRESS</h3>
+                    
+                    <div class="system-stats">
+                        <div class="stat-item">
+                            <span>Avaliação</span>
+                            <div class="stat-value">
+                                <i class="fas fa-star"></i> 4.7
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <span>Clientes</span>
+                            <div class="stat-value">
+                                <i class="fas fa-users"></i> 312
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <span>Conversão</span>
+                            <div class="stat-value">
+                                <i class="fas fa-bolt"></i> 18%
+                            </div>
+                        </div>
+                    </div>
+
+                    <ul class="system-features">
+                        <li class="feature-tag">Fast Load</li>
+                        <li class="feature-tag">Mobile First</li>
+                        <li class="feature-tag">PIX Auto</li>
+                    </ul>
+
+                    <div class="system-footer">
+                        <div class="footer-top">
+                            <div class="system-price">R$ 99,90 <span>/instalação</span></div>
+                        </div>
+                        <div class="actions-group">
+                            <a href="menu-quick.html" target="_blank" class="btn-action btn-demo">
+                                <i class="fas fa-eye"></i> Ver Demo
+                            </a>
+                            <a href="admin-deploy.html?template=quick" class="btn-action btn-deploy">
+                                <i class="fas fa-rocket"></i> Implantar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sistema 3: Coffee & Co -->
+            <div class="system-card">
+                <div class="system-img-container">
+                    <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Coffee & Co" class="system-img">
+                </div>
+                <div class="system-info">
+                    <span class="system-category">Cafeteria • Minimalista</span>
+                    <h3 class="system-title syne">COFFEE & CO</h3>
+                    
+                    <div class="system-stats">
+                        <div class="stat-item">
+                            <span>Avaliação</span>
+                            <div class="stat-value">
+                                <i class="fas fa-star"></i> 4.8
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <span>Clientes</span>
+                            <div class="stat-value">
+                                <i class="fas fa-users"></i> 187
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <span>Conversão</span>
+                            <div class="stat-value">
+                                <i class="fas fa-coffee"></i> 15%
+                            </div>
+                        </div>
+                    </div>
+
+                    <ul class="system-features">
+                        <li class="feature-tag">Minimal</li>
+                        <li class="feature-tag">Instagram Sync</li>
+                        <li class="feature-tag">Blog</li>
+                    </ul>
+
+                    <div class="system-footer">
+                        <div class="footer-top">
+                            <div class="system-price">R$ 119,90 <span>/instalação</span></div>
+                        </div>
+                        <div class="actions-group">
+                            <a href="menu-coffee.html" target="_blank" class="btn-action btn-demo">
+                                <i class="fas fa-eye"></i> Ver Demo
+                            </a>
+                            <a href="admin-deploy.html?template=coffee" class="btn-action btn-deploy">
+                                <i class="fas fa-rocket"></i> Implantar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sistema 4: Sushi Master -->
+            <div class="system-card">
+                <div class="system-badge" style="background: #3498db;">Novo</div>
+                <div class="system-img-container">
+                    <img src="https://images.unsplash.com/photo-1579871494447-9811cf80d66c?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Sushi Master" class="system-img">
+                </div>
+                <div class="system-info">
+                    <span class="system-category">Oriental • Elegante</span>
+                    <h3 class="system-title syne">SUSHI MASTER PRO</h3>
+                    
+                    <div class="system-stats">
+                        <div class="stat-item">
+                            <span>Avaliação</span>
+                            <div class="stat-value">
+                                <i class="fas fa-star"></i> 5.0
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <span>Clientes</span>
+                            <div class="stat-value">
+                                <i class="fas fa-users"></i> 42
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <span>Conversão</span>
+                            <div class="stat-value">
+                                <i class="fas fa-fish"></i> 32%
+                            </div>
+                        </div>
+                    </div>
+
+                    <ul class="system-features">
+                        <li class="feature-tag">Animações</li>
+                        <li class="feature-tag">Combo Builder</li>
+                        <li class="feature-tag">Multi-idioma</li>
+                    </ul>
+
+                    <div class="system-footer">
+                        <div class="footer-top">
+                            <div class="system-price">R$ 159,90 <span>/instalação</span></div>
+                        </div>
+                        <div class="actions-group">
+                            <a href="menu-premium.html" target="_blank" class="btn-action btn-demo">
+                                <i class="fas fa-eye"></i> Ver Demo
+                            </a>
+                            <a href="admin-deploy.html?template=premium" class="btn-action btn-deploy">
+                                <i class="fas fa-rocket"></i> Implantar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sistema 5: Green Garden -->
+            <div class="system-card">
+                <div class="system-img-container">
+                    <img src="https://images.unsplash.com/photo-1543332164-6e82f355badc?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Green Garden" class="system-img">
+                </div>
+                <div class="system-info">
+                    <span class="system-category">Saudável • Clean</span>
+                    <h3 class="system-title syne">GREEN GARDEN</h3>
+                    
+                    <div class="system-stats">
+                        <div class="stat-item">
+                            <span>Avaliação</span>
+                            <div class="stat-value">
+                                <i class="fas fa-star"></i> 4.6
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <span>Clientes</span>
+                            <div class="stat-value">
+                                <i class="fas fa-users"></i> 95
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <span>Conversão</span>
+                            <div class="stat-value">
+                                <i class="fas fa-leaf"></i> 12%
+                            </div>
+                        </div>
+                    </div>
+
+                    <ul class="system-features">
+                        <li class="feature-tag">Calorias</li>
+                        <li class="feature-tag">Filtros Dieta</li>
+                        <li class="feature-tag">Eco-friendly</li>
+                    </ul>
+
+                    <div class="system-footer">
+                        <div class="footer-top">
+                            <div class="system-price">R$ 89,90 <span>/instalação</span></div>
+                        </div>
+                        <div class="actions-group">
+                            <a href="menu-basic.html" target="_blank" class="btn-action btn-demo">
+                                <i class="fas fa-eye"></i> Ver Demo
+                            </a>
+                            <a href="admin-deploy.html?template=basic" class="btn-action btn-deploy">
+                                <i class="fas fa-rocket"></i> Implantar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sistema 6: Pizza Express -->
+            <div class="system-card">
+                <div class="system-img-container">
+                    <img src="https://images.unsplash.com/photo-1513104890138-7c749659a591?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Pizza Express" class="system-img">
+                </div>
+                <div class="system-info">
+                    <span class="system-category">Pizzaria • Funcional</span>
+                    <h3 class="system-title syne">PIZZA EXPRESS</h3>
+                    
+                    <div class="system-stats">
+                        <div class="stat-item">
+                            <span>Avaliação</span>
+                            <div class="stat-value">
+                                <i class="fas fa-star"></i> 4.8
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <span>Clientes</span>
+                            <div class="stat-value">
+                                <i class="fas fa-users"></i> 520
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <span>Conversão</span>
+                            <div class="stat-value">
+                                <i class="fas fa-pizza-slice"></i> 21%
+                            </div>
+                        </div>
+                    </div>
+
+                    <ul class="system-features">
+                        <li class="feature-tag">Meio a Meio</li>
+                        <li class="feature-tag">Add-ons</li>
+                        <li class="feature-tag">Delivery Map</li>
+                    </ul>
+
+                    <div class="system-footer">
+                        <div class="footer-top">
+                            <div class="system-price">R$ 109,90 <span>/instalação</span></div>
+                        </div>
+                        <div class="actions-group">
+                            <a href="menu-pro.html" target="_blank" class="btn-action btn-demo">
+                                <i class="fas fa-eye"></i> Ver Demo
+                            </a>
+                            <a href="admin-deploy.html?template=pro" class="btn-action btn-deploy">
+                                <i class="fas fa-rocket"></i> Implantar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="../js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const userStr = localStorage.getItem('qrchef_user');
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                document.querySelectorAll('.user-name').forEach(el => el.textContent = user.name);
+                document.querySelectorAll('.user-email').forEach(el => el.textContent = user.email);
+                document.querySelectorAll('.avatar-circle').forEach(el => el.textContent = user.name.charAt(0).toUpperCase());
+            }
+        });
+
+        document.getElementById('logoutBtn')?.addEventListener('click', () => AuthService.logout());
+    </script>
+</body>
+</html>
