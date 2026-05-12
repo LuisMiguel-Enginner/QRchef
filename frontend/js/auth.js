@@ -113,6 +113,9 @@ function updateRequirement(id, isValid) {
 const AuthService = {
     async login(email, password) {
         const btnText = "Entrar no Sistema";
+        const errorEl = document.getElementById('loginError');
+        if (errorEl) errorEl.style.display = 'none';
+        
         UI.setLoading('loginBtn', true, btnText);
 
         try {
@@ -129,11 +132,21 @@ const AuthService = {
                 localStorage.setItem('qrchef_user', JSON.stringify(data.user));
                 window.location.href = 'dashboard.html';
             } else {
-                UI.showAlert(data.message || 'E-mail ou senha incorretos.');
+                if (errorEl) {
+                    errorEl.querySelector('.error-text').textContent = data.message || 'E-mail ou senha incorretos.';
+                    errorEl.style.display = 'block';
+                } else {
+                    UI.showAlert(data.message || 'E-mail ou senha incorretos.');
+                }
             }
         } catch (error) {
             console.error('Erro no login:', error);
-            UI.showAlert('Não foi possível conectar ao servidor.');
+            if (errorEl) {
+                errorEl.querySelector('.error-text').textContent = 'Não foi possível conectar ao servidor.';
+                errorEl.style.display = 'block';
+            } else {
+                UI.showAlert('Não foi possível conectar ao servidor.');
+            }
         } finally {
             UI.setLoading('loginBtn', false, btnText);
         }

@@ -522,7 +522,26 @@
             </div>
         </section>
 
-        <!-- SEÇÕES CLIENTE (Simplificadas para o novo modelo) -->
+        <!-- SEÇÃO: O QUE FAZEMOS (USER) -->
+        <section id="servicos" class="section-view user-only">
+            <h2 class="syne" style="margin-bottom: 32px;">O Que a QRchef Faz por Você?</h2>
+            <div class="grid-3">
+                <div class="card">
+                    <h3>Desenvolvimento de Cardápios</h3>
+                    <p style="color: var(--gray); margin-top: 15px;">Criamos sistemas de cardápios digitais personalizados, rápidos e otimizados para converter mais vendas.</p>
+                </div>
+                <div class="card">
+                    <h3>Integração com QR Code</h3>
+                    <p style="color: var(--gray); margin-top: 15px;">Geramos e configuramos toda a estrutura de QR Codes para as mesas do seu restaurante.</p>
+                </div>
+                <div class="card">
+                    <h3>Hospedagem & Manutenção</h3>
+                    <p style="color: var(--gray); margin-top: 15px;">Garantimos que seu cardápio esteja sempre online e atualizado com o que há de mais moderno.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEÇÃO: PLANOS (USER) -->
         <section id="planos" class="section-view user-only">
             <h1 class="page-title syne">Escolha sua Experiência</h1>
             <div class="grid-3">
@@ -550,7 +569,7 @@
             </div>
         </section>
 
-        <!-- SEÇÃO: SUPORTE -->
+        <!-- SEÇÃO: SUPORTE (USER) -->
         <section id="suporte" class="section-view user-only">
             <h1 class="page-title syne">Como podemos ajudar?</h1>
             <div class="grid-3">
@@ -636,7 +655,6 @@
                 </div>
             </div>
         </section>
-
     </main>
 
     <script src="../js/auth.js"></script>
@@ -667,7 +685,8 @@
                 }
                 
                 // Verificação Admin
-                if (user.email === 'admin@sistema.com') {
+                const isAdmin = user.email === 'admin@sistema.com' || user.email === 'adminsistema@sistema.com';
+                if (isAdmin) {
                     document.body.classList.add('is-admin');
                     showSection('admin-home');
                     loadAdminData(); // Carrega dados reais do banco

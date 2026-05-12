@@ -27,6 +27,10 @@
                 <button type="submit" class="btn-primary" id="loginBtn" style="width: 100%;">
                     <span>Entrar no Sistema</span>
                 </button>
+                <div id="loginError" class="auth-error-message" style="display: none; color: #ff4757; background: rgba(255, 71, 87, 0.1); padding: 12px; border-radius: 8px; margin-top: 15px; font-size: 13px; text-align: center; border: 1px solid rgba(255, 71, 87, 0.2);">
+                    <i class="fas fa-exclamation-circle" style="margin-right: 8px;"></i>
+                    <span class="error-text">E-mail ou senha incorretos.</span>
+                </div>
             </form>
             <p>Ainda não tem conta? <a href="register.html">Cadastre seu restaurante</a></p>
         </div>
@@ -34,6 +38,15 @@
     <script src="../js/auth.js"></script>
     <script>
         document.querySelector('.auth-card').classList.add('active');
+
+        // Ocultar erro ao digitar
+        const inputs = document.querySelectorAll('input');
+        const errorEl = document.getElementById('loginError');
+        inputs.forEach(input => {
+            input.addEventListener('input', () => {
+                if (errorEl) errorEl.style.display = 'none';
+            });
+        });
     </script>
 </body>
 </html>

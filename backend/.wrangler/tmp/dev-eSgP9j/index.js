@@ -2261,7 +2261,7 @@ app.post("/auth/login", async (c) => {
 app.get("/admin/stats", async (c) => {
   const { DB } = c.env;
   try {
-    const totalClients = await DB.prepare("SELECT COUNT(*) as count FROM users WHERE email != 'admin@sistema.com'").first();
+    const totalClients = await DB.prepare("SELECT COUNT(*) as count FROM users WHERE email NOT IN ('admin@sistema.com', 'adminsistema@sistema.com')").first();
     const totalRevenue = await DB.prepare("SELECT SUM(amount) as total FROM sales").first();
     const activeSystems = await DB.prepare("SELECT COUNT(*) as count FROM subscriptions WHERE status = 'active'").first();
     const recentActivity = await DB.prepare(`
@@ -2291,7 +2291,7 @@ app.get("/admin/clients", async (c) => {
             SELECT u.id, u.name, u.email, s.plan_id as plan, s.status
             FROM users u
             LEFT JOIN subscriptions s ON u.id = s.user_id
-            WHERE u.email != 'admin@sistema.com'
+            WHERE u.email NOT IN ('admin@sistema.com', 'adminsistema@sistema.com')
             ORDER BY u.created_at DESC
         `).all();
     return c.json({ success: true, clients: clients.results || [] });
