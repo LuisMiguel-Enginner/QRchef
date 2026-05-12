@@ -4,7 +4,7 @@ const CF_CONFIG = {
                window.location.hostname === '127.0.0.1' || 
                window.location.hostname.startsWith('192.168.')) 
         ? `${window.location.protocol}//${window.location.hostname}:8787` 
-        : 'https://qrchef-worker.claudio-m-martins.workers.dev', // URL atualizada
+        : 'https://qrchef-worker.luismiguelgomesoliveira-014.workers.dev', // URL atualizada com o seu subdomínio real
 };
 
 // Utilitários de UI
