@@ -1,0 +1,17 @@
+{
+  "name": "qrchef-backend",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "migrate:local": "wrangler d1 migrations apply qrchef-db --local",
+    "migrate:remote": "wrangler d1 migrations apply qrchef-db --remote"
+  },
+  "dependencies": {
+    "hono": "^4.0.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.90.0"
+  }
+}

@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elite Gastronomy | Premium Menu</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0a0a0a;
+            --accent: #D4AF37;
+            --accent-soft: rgba(212, 175, 55, 0.05);
+            --bg: #ffffff;
+            --text: #1a1a1a;
+            --gray-light: #f9f9f9;
+            --gray: #999;
+            --transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Syne', sans-serif; background-color: var(--bg); color: var(--text); overflow-x: hidden; padding-bottom: 120px; }
+        
+        /* Loading Screen */
+        .loader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #fff; z-index: 2000;
+            display: flex; align-items: center; justify-content: center;
+            transition: opacity 0.8s ease, visibility 0.8s;
+        }
+        .loader.hidden { opacity: 0; visibility: hidden; }
+        .loader-content { text-align: center; }
+        .loader-line { width: 40px; height: 2px; background: var(--accent); margin: 10px auto; animation: grow 1.5s infinite; }
+        @keyframes grow { 0%, 100% { width: 0; } 50% { width: 60px; } }
+
+        /* Header */
+        header {
+            position: sticky; top: 0; z-index: 1000;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(15px);
+            padding: 25px 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid rgba(0,0,0,0.03);
+        }
+        .logo { font-size: 16px; font-weight: 800; letter-spacing: 4px; text-transform: uppercase; color: var(--primary); }
+        .nav-icon { font-size: 18px; color: var(--primary); cursor: pointer; }
+
+        /* Hero */
+        .hero { padding: 60px 20px; text-align: center; background: #fafafa; border-bottom: 1px solid #eee; }
+        .hero span { font-size: 11px; text-transform: uppercase; letter-spacing: 5px; color: var(--accent); display: block; margin-bottom: 15px; font-weight: 700; }
+        .hero h1 { font-family: 'Playfair Display', serif; font-size: 48px; font-weight: 700; font-style: italic; line-height: 1.1; margin-bottom: 10px; }
+        .hero p { font-size: 13px; color: var(--gray); letter-spacing: 2px; text-transform: uppercase; }
+
+        /* Search */
+        .search-area { padding: 30px 20px 0; }
+        .search-box {
+            background: var(--gray-light); border: 1px solid #eee; padding: 18px 25px;
+            display: flex; align-items: center; gap: 15px; border-radius: 4px;
+            transition: var(--transition);
+        }
+        .search-box:focus-within { background: #fff; border-color: var(--accent); box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .search-box input { border: none; outline: none; background: transparent; width: 100%; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; }
+        .search-box i { color: var(--gray); }
+
+        /* Categories */
+        .categories {
+            display: flex; gap: 35px; padding: 35px 20px; overflow-x: auto; scrollbar-width: none;
+            position: sticky; top: 72px; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); z-index: 90;
+        }
+        .categories::-webkit-scrollbar { display: none; }
+        .cat-link {
+            font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px;
+            color: var(--gray); cursor: pointer; white-space: nowrap; transition: var(--transition);
+            border-bottom: 2px solid transparent; padding-bottom: 5px;
+        }
+        .cat-link.active { color: var(--primary); border-bottom-color: var(--accent); }
+
+        /* Menu Items */
+        .menu-grid { padding: 0 20px; }
+        .item-row {
+            display: flex; gap: 25px; padding: 45px 0; border-bottom: 1px solid #f5f5f5;
+            transition: var(--transition); cursor: pointer;
+        }
+        .item-row:hover { transform: translateX(8px); }
+        
+        .item-img-container { width: 120px; height: 120px; flex-shrink: 0; position: relative; }
+        .item-img { width: 100%; height: 100%; object-fit: cover; border-radius: 2px; filter: grayscale(0.3); transition: var(--transition); }
+        .item-row:hover .item-img { filter: grayscale(0); }
+        .item-tag {
+            position: absolute; top: -10px; left: -10px; background: var(--primary); color: var(--accent);
+            font-size: 9px; font-weight: 800; padding: 5px 10px; letter-spacing: 1px; text-transform: uppercase;
+        }
+
+        .item-details { flex: 1; }
+        .item-details h4 { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; margin-bottom: 8px; letter-spacing: 0.5px; }
+        .item-details p { font-size: 13px; color: var(--gray); line-height: 1.6; margin-bottom: 20px; font-family: 'Syne'; }
+        
+        .item-action { display: flex; justify-content: space-between; align-items: center; }
+        .item-price { font-size: 18px; font-weight: 800; color: var(--primary); letter-spacing: -0.5px; }
+        .add-icon {
+            width: 32px; height: 32px; border: 1px solid #eee; display: flex; align-items: center; justify-content: center;
+            font-size: 12px; transition: var(--transition);
+        }
+        .item-row:hover .add-icon { border-color: var(--primary); background: var(--primary); color: var(--accent); }
+
+        /* Cart Bar */
+        .cart-strip {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: var(--primary); color: #fff; padding: 25px 30px;
+            display: flex; justify-content: space-between; align-items: center;
+            z-index: 1000; transform: translateY(100%); transition: var(--transition);
+            cursor: pointer;
+        }
+        .cart-strip.active { transform: translateY(0); }
+        .cart-label { font-size: 11px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; color: var(--accent); }
+        .cart-val { font-size: 20px; font-weight: 800; font-family: 'Playfair Display', serif; font-style: italic; }
+
+        /* Floating Concierge */
+        .concierge-btn {
+            position: fixed; right: 25px; bottom: 110px; width: 55px; height: 55px;
+            background: #fff; border: 1px solid #eee; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; color: var(--primary); cursor: pointer; z-index: 900;
+            transition: var(--transition); box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+        .concierge-btn.active { background: var(--accent); border-color: var(--accent); color: var(--primary); animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.4); } 70% { box-shadow: 0 0 0 20px rgba(212, 175, 55, 0); } 100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); } }
+
+        /* Modal */
+        .modal-wrap {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.98); z-index: 2000; display: none;
+            opacity: 0; transition: var(--transition);
+        }
+        .modal-wrap.active { display: flex; opacity: 1; }
+        .modal-body { width: 100%; padding: 60px 25px; text-align: center; }
+        .modal-close { position: absolute; top: 30px; right: 30px; font-size: 24px; cursor: pointer; }
+
+        .btn-confirm {
+            width: 100%; padding: 22px; background: var(--primary); color: var(--accent);
+            border: none; font-weight: 800; font-size: 14px; letter-spacing: 4px;
+            text-transform: uppercase; cursor: pointer; margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="loader" id="loader">
+        <div class="loader-content">
+            <div class="logo">ELITE</div>
+            <div class="loader-line"></div>
+        </div>
+    </div>
+
+    <header>
+        <i class="fas fa-bars nav-icon"></i>
+        <div class="logo">ELITE</div>
+        <i class="far fa-heart nav-icon"></i>
+    </header>
+
+    <section class="hero">
+        <span>Since 1984</span>
+        <h1>Alta<br>Gastronomia</h1>
+        <p>A ARTE DE SERVIR COM EXCELÊNCIA</p>
+    </section>
+
+    <div class="search-area">
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="O QUE DESEJA DEGUSTAR?" onkeyup="handleSearch(this.value)">
+        </div>
+    </div>
+
+    <nav class="categories" id="catNav"></nav>
+
+    <main class="menu-grid" id="menuGrid"></main>
+
+    <div class="concierge-btn" onclick="callConcierge(this)">
+        <i class="fas fa-concierge-bell"></i>
+    </div>
+
+    <div class="cart-strip" id="cartStrip" onclick="openSummary()">
+        <span class="cart-label">Finalizar Experiência</span>
+        <div class="cart-val" id="cartVal">R$ 0,00</div>
+    </div>
+
+    <div class="modal-wrap" id="modalWrap">
+        <i class="fas fa-times modal-close" onclick="closeSummary()"></i>
+        <div class="modal-body">
+            <h2 class="playfair" style="font-size: 32px; margin-bottom: 40px;">Sua Seleção</h2>
+            <div id="summaryItems" style="margin-bottom: 40px;"></div>
+            <div style="display:flex; justify-content:space-between; border-top: 1px solid #eee; padding-top: 20px;">
+                <span style="font-weight: 800; letter-spacing: 2px;">TOTAL</span>
+                <span id="finalTotal" style="font-family:'Playfair Display'; font-style:italic; font-size:24px; font-weight:700;">R$ 0,00</span>
+            </div>
+            <button class="btn-confirm" onclick="finishOrder()">Confirmar Pedido</button>
+        </div>
+    </div>
+
+    <script>
+        const menuData = {
+            categories: ['Entradas', 'Principais', 'Vinhos', 'Sobremesas'],
+            items: [
+                { category: 'Entradas', name: 'Ostras Gratinadas', desc: 'Ostras frescas de Santa Catarina com creme de espumante e queijo brie.', price: 115, tag: 'Sugestão', img: 'https://images.unsplash.com/photo-1544148103-0773bf10d330?auto=format&fit=crop&w=400' },
+                { category: 'Principais', name: 'Magret de Canard', desc: 'Peito de pato grelhado, redução de frutas vermelhas e risoto de açafrão.', price: 245, tag: 'Premium', img: 'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&w=400' },
+                { category: 'Vinhos', name: 'Brunello di Montalcino', desc: 'Safra 2015. Um dos tintos mais prestigiados da Toscana, Itália.', price: 890, img: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=400' },
+                { category: 'Sobremesas', name: 'Soufflé de Grand Marnier', desc: 'Clássico soufflé francês finalizado com licor de laranja e raspas de chocolate.', price: 65, img: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=400' }
+            ]
+        };
+
+        let cart = [];
+        let currentCat = 'Entradas';
+
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('loader').classList.add('hidden');
+                init();
+            }, 1000);
+        });
+
+        function init() {
+            renderCats();
+            renderMenu();
+        }
+
+        function renderCats() {
+            const nav = document.getElementById('catNav');
+            nav.innerHTML = menuData.categories.map(c => `
+                <div class="cat-link ${c === currentCat ? 'active' : ''}" onclick="setCat('${c}')">${c}</div>
+            `).join('');
+        }
+
+        function setCat(c) {
+            currentCat = c;
+            renderCats();
+            renderMenu();
+        }
+
+        function handleSearch(val) {
+            renderMenu(val);
+        }
+
+        function renderMenu(filter = '') {
+            const grid = document.getElementById('menuGrid');
+            const filtered = menuData.items.filter(i => 
+                (filter === '' ? i.category === currentCat : true) &&
+                (i.name.toLowerCase().includes(filter.toLowerCase()) || i.desc.toLowerCase().includes(filter.toLowerCase()))
+            );
+
+            grid.innerHTML = filtered.map(item => `
+                <div class="item-row" onclick="addToCart('${item.name}', ${item.price})">
+                    <div class="item-img-container">
+                        <img src="${item.img}" class="item-img">
+                        ${item.tag ? `<div class="item-tag">${item.tag}</div>` : ''}
+                    </div>
+                    <div class="item-details">
+                        <h4>${item.name}</h4>
+                        <p>${item.desc}</p>
+                        <div class="item-action">
+                            <div class="item-price">R$ ${item.price.toFixed(2).replace('.', ',')}</div>
+                            <div class="add-icon"><i class="fas fa-plus"></i></div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addToCart(name, price) {
+            cart.push({ name, price });
+            updateCartStrip();
+            
+            if (window.navigator.vibrate) window.navigator.vibrate(40);
+        }
+
+        function updateCartStrip() {
+            const strip = document.getElementById('cartStrip');
+            const val = document.getElementById('cartVal');
+            if (cart.length > 0) {
+                strip.classList.add('active');
+                const sum = cart.reduce((acc, i) => acc + i.price, 0);
+                val.innerText = `R$ ${sum.toFixed(2).replace('.', ',')}`;
+            } else {
+                strip.classList.remove('active');
+            }
+        }
+
+        function openSummary() {
+            const wrap = document.getElementById('modalWrap');
+            const items = document.getElementById('summaryItems');
+            const total = document.getElementById('finalTotal');
+            
+            items.innerHTML = cart.map(i => `
+                <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-size:12px; letter-spacing:1px; text-transform:uppercase;">
+                    <span>${i.name}</span>
+                    <span style="font-weight:700;">R$ ${i.price.toFixed(2).replace('.', ',')}</span>
+                </div>
+            `).join('');
+            
+            const sum = cart.reduce((acc, i) => acc + i.price, 0);
+            total.innerText = `R$ ${sum.toFixed(2).replace('.', ',')}`;
+            
+            wrap.style.display = 'flex';
+            setTimeout(() => wrap.classList.add('active'), 10);
+        }
+
+        function closeSummary() {
+            const wrap = document.getElementById('modalWrap');
+            wrap.classList.remove('active');
+            setTimeout(() => wrap.style.display = 'none', 500);
+        }
+
+        function callConcierge(btn) {
+            btn.classList.toggle('active');
+            if (btn.classList.contains('active')) {
+                alert('Concierge Elite notificado. Estamos a caminho da sua mesa.');
+            }
+        }
+
+        function finishOrder() {
+            alert('Sua experiência gastronômica foi confirmada.');
+            cart = [];
+            updateCartStrip();
+            closeSummary();
+        }
+    </script>
+</body>
+</html>

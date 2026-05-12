@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Bite Express | Fast Menu</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #E31837;
+            --primary-dark: #b3122b;
+            --accent: #FFBC0D;
+            --bg: #ffffff;
+            --card-bg: #f8f9fa;
+            --text: #111111;
+            --transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg); color: var(--text); overflow-x: hidden; padding-bottom: 120px; }
+        .bebas { font-family: 'Bebas Neue', cursive; }
+
+        /* Fast Loader */
+        .fast-loader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--primary); z-index: 2000;
+            display: flex; align-items: center; justify-content: center;
+            transition: transform 0.6s cubic-bezier(0.77, 0, 0.175, 1);
+        }
+        .fast-loader.hidden { transform: translateY(-100%); }
+        .loader-content { color: white; font-size: 60px; text-align: center; }
+
+        /* Header */
+        header {
+            background: var(--primary); padding: 15px 20px; color: white;
+            display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .logo { font-size: 28px; letter-spacing: -1px; }
+        .logo span { color: var(--accent); }
+
+        /* Hero */
+        .hero { background: var(--primary); color: white; padding: 20px 20px 60px; border-radius: 0 0 50px 50px; margin-bottom: 20px; text-align: center; }
+        .hero h1 { font-size: 64px; line-height: 0.8; margin-bottom: 10px; text-shadow: 4px 4px 0 var(--primary-dark); }
+        .hero p { color: var(--accent); font-weight: 800; font-size: 14px; text-transform: uppercase; letter-spacing: 2px; }
+
+        /* Search */
+        .search-area { margin: -35px 20px 30px; }
+        .search-box {
+            background: white; padding: 20px 25px; border-radius: 25px;
+            display: flex; align-items: center; gap: 15px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1); border: 3px solid transparent;
+        }
+        .search-box:focus-within { border-color: var(--accent); }
+        .search-box input { border: none; outline: none; width: 100%; font-size: 16px; font-weight: 700; color: #333; }
+        .search-box i { color: var(--primary); font-size: 20px; }
+
+        /* Categories */
+        .categories { display: flex; gap: 12px; padding: 0 20px 30px; overflow-x: auto; scrollbar-width: none; }
+        .categories::-webkit-scrollbar { display: none; }
+        .cat-btn {
+            padding: 14px 28px; background: #f0f0f0; color: #555;
+            border-radius: 20px; white-space: nowrap; font-weight: 800; font-size: 14px;
+            cursor: pointer; transition: var(--transition); text-transform: uppercase;
+        }
+        .cat-btn.active { background: var(--accent); color: #000; transform: scale(1.1); box-shadow: 0 10px 20px rgba(255, 188, 13, 0.3); }
+
+        /* Items */
+        .menu-list { padding: 0 20px; }
+        .item-card {
+            background: white; border: 2px solid #f0f0f0; border-radius: 30px;
+            padding: 18px; margin-bottom: 20px; display: flex; gap: 18px; align-items: center;
+            position: relative; cursor: pointer; transition: var(--transition);
+        }
+        .item-card:active { transform: scale(0.95); }
+        .item-card:hover { border-color: var(--accent); }
+
+        .img-box { width: 100px; height: 100px; flex-shrink: 0; position: relative; }
+        .img-box img { width: 100%; height: 100%; border-radius: 20px; object-fit: cover; }
+        .promo-badge {
+            position: absolute; top: -12px; right: -12px; background: var(--primary);
+            color: white; font-size: 10px; font-weight: 900; padding: 6px 14px;
+            border-radius: 100px; box-shadow: 0 5px 15px rgba(227, 24, 55, 0.3);
+            text-transform: uppercase;
+        }
+
+        .item-body { flex: 1; }
+        .item-body h4 { font-size: 22px; font-weight: 900; margin-bottom: 4px; text-transform: uppercase; color: #000; }
+        .item-body p { font-size: 13px; color: #666; line-height: 1.3; margin-bottom: 12px; }
+        
+        .item-action { display: flex; justify-content: space-between; align-items: center; }
+        .item-price { font-size: 24px; font-weight: 900; color: var(--primary); font-family: 'Bebas Neue'; }
+        .add-btn {
+            background: var(--primary); color: white; width: 42px; height: 42px;
+            border-radius: 15px; display: flex; align-items: center; justify-content: center;
+            font-size: 20px; box-shadow: 0 8px 20px rgba(227, 24, 55, 0.3);
+        }
+
+        /* Cart Bar */
+        .fast-cart {
+            position: fixed; bottom: 30px; left: 20px; right: 20px;
+            background: #000; color: white; padding: 22px 28px; border-radius: 25px;
+            display: flex; justify-content: space-between; align-items: center;
+            z-index: 1000; box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+            transform: translateY(150%); transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+        }
+        .fast-cart.active { transform: translateY(0); }
+        .cart-info { display: flex; align-items: center; gap: 15px; }
+        .cart-badge {
+            background: var(--accent); color: #000; width: 32px; height: 32px;
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            font-weight: 900; font-size: 16px;
+        }
+        .cart-total { font-weight: 900; font-size: 24px; color: var(--accent); font-family: 'Bebas Neue'; }
+
+        /* Floating WhatsApp */
+        .btn-whatsapp {
+            position: fixed; right: 20px; bottom: 125px; width: 60px; height: 60px;
+            background: #25D366; color: white; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 32px; box-shadow: 0 10px 25px rgba(37, 211, 102, 0.3);
+            z-index: 900; cursor: pointer; transition: var(--transition);
+        }
+        .btn-whatsapp:active { transform: scale(0.9); }
+
+        /* Modal */
+        .modal-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 2000; display: none; align-items: flex-end;
+        }
+        .modal-box {
+            background: white; width: 100%; padding: 45px 25px;
+            border-radius: 40px 40px 0 0; transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .modal-bg.active { display: flex; }
+        .modal-bg.active .modal-box { transform: translateY(0); }
+
+        .btn-order {
+            width: 100%; padding: 22px; background: var(--primary); color: white;
+            border: none; border-radius: 20px; font-weight: 900; font-size: 22px;
+            margin-top: 30px; text-transform: uppercase; letter-spacing: 1px;
+            font-family: 'Bebas Neue';
+        }
+    </style>
+</head>
+<body>
+
+    <div class="fast-loader" id="loader">
+        <div class="loader-content bebas">FAST!</div>
+    </div>
+
+    <header>
+        <div class="logo bebas">QUICK<span>BITE</span></div>
+        <div onclick="alert('Menu')"><i class="fas fa-bars" style="font-size: 24px;"></i></div>
+    </header>
+
+    <section class="hero">
+        <h1 class="bebas">FOME DE<br>GIGANTE?</h1>
+        <p>ENTREGA EM ATÉ 20 MINUTOS!</p>
+    </section>
+
+    <div class="search-area">
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="O QUE VOCÊ VAI DETONAR HOJE?" onkeyup="handleSearch(this.value)">
+        </div>
+    </div>
+
+    <nav class="categories" id="catNav"></nav>
+
+    <main class="menu-list" id="menuList"></main>
+
+    <div class="btn-whatsapp" onclick="sendWhatsApp()">
+        <i class="fab fa-whatsapp"></i>
+    </div>
+
+    <div class="fast-cart" id="fastCart" onclick="openSummary()">
+        <div class="cart-info">
+            <div class="cart-badge" id="cartCount">0</div>
+            <span style="font-weight: 900; font-size: 16px; text-transform: uppercase;">Finalizar Pedido</span>
+        </div>
+        <div class="cart-total" id="cartTotal">R$ 0,00</div>
+    </div>
+
+    <div class="modal-bg" id="modalBg" onclick="closeSummary()">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <h2 class="bebas" style="font-size: 48px; color: var(--primary); text-align: center; margin-bottom: 25px;">MEU COMBO</h2>
+            <div id="orderItems" style="margin-bottom: 30px;"></div>
+            
+            <div style="display:flex; justify-content:space-between; align-items:center; border-top: 5px dashed #f0f0f0; padding-top: 25px;">
+                <span style="font-weight: 900; font-size: 20px;">TOTAL</span>
+                <span id="finalTotal" style="font-weight: 900; font-size: 36px; color: var(--primary); font-family: 'Bebas Neue';">R$ 0,00</span>
+            </div>
+
+            <button class="btn-order" onclick="finishOrder()">PEDIR AGORA!</button>
+        </div>
+    </div>
+
+    <script>
+        const menuData = {
+            categories: ['Burgers', 'Combos', 'Lados', 'Shakes'],
+            items: [
+                { category: 'Burgers', name: 'Mega Monster', desc: 'Duas carnes 180g, cheddar triplo, bacon extra e molho secreto.', price: 44.90, badge: 'Mais Pedido', img: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=400' },
+                { category: 'Burgers', name: 'Smash Bacon', desc: 'Carne prensada, queijo derretido e muito bacon crocante.', price: 29.90, img: 'https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?auto=format&fit=crop&w=400' },
+                { category: 'Combos', name: 'Combo Família', desc: '4 Burgers + Batata Gigante + Refri 2L + 2 Sundaes.', price: 139.00, badge: 'Economia', img: 'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=400' },
+                { category: 'Lados', name: 'Nuggets Xtra', desc: '10 unidades super crocantes com molho barbecue.', price: 24.00, img: 'https://images.unsplash.com/photo-1562967914-608f82629710?auto=format&fit=crop&w=400' },
+                { category: 'Shakes', name: 'Shake Ovomaltine', desc: '700ml de pura cremosidade com muito Ovomaltine.', price: 22.00, badge: 'Novo', img: 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?auto=format&fit=crop&w=400' }
+            ]
+        };
+
+        let cart = [];
+        let currentCat = 'Burgers';
+
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('loader').classList.add('hidden');
+                init();
+            }, 800);
+        });
+
+        function init() {
+            renderCats();
+            renderMenu();
+        }
+
+        function renderCats() {
+            const nav = document.getElementById('catNav');
+            nav.innerHTML = menuData.categories.map(c => `
+                <div class="cat-btn ${c === currentCat ? 'active' : ''}" onclick="setCat('${c}')">${c}</div>
+            `).join('');
+        }
+
+        function setCat(c) {
+            currentCat = c;
+            renderCats();
+            renderMenu();
+        }
+
+        function handleSearch(val) {
+            renderMenu(val);
+        }
+
+        function renderMenu(filter = '') {
+            const list = document.getElementById('menuList');
+            const filtered = menuData.items.filter(i => 
+                (filter === '' ? i.category === currentCat : true) &&
+                (i.name.toLowerCase().includes(filter.toLowerCase()) || i.desc.toLowerCase().includes(filter.toLowerCase()))
+            );
+
+            list.innerHTML = `
+                <h3 class="bebas" style="font-size: 32px; color: var(--primary); margin-bottom: 20px;">${filter ? 'Resultados' : currentCat}</h3>
+                ${filtered.map(item => `
+                    <div class="item-card" onclick="addToCart('${item.name}', ${item.price})">
+                        ${item.badge ? `<div class="promo-badge">${item.badge}</div>` : ''}
+                        <div class="img-box">
+                            <img src="${item.img}">
+                        </div>
+                        <div class="item-body">
+                            <h4>${item.name}</h4>
+                            <p>${item.desc}</p>
+                            <div class="item-action">
+                                <div class="item-price">R$ ${item.price.toFixed(2).replace('.', ',')}</div>
+                                <div class="add-btn"><i class="fas fa-plus"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            `;
+        }
+
+        function addToCart(name, price) {
+            cart.push({ name, price });
+            updateCart();
+            if (window.navigator.vibrate) window.navigator.vibrate(60);
+        }
+
+        function updateCart() {
+            const cartBar = document.getElementById('fastCart');
+            const count = document.getElementById('cartCount');
+            const total = document.getElementById('cartTotal');
+            if (cart.length > 0) {
+                cartBar.classList.add('active');
+                count.innerText = cart.length;
+                const sum = cart.reduce((acc, i) => acc + i.price, 0);
+                total.innerText = `R$ ${sum.toFixed(2).replace('.', ',')}`;
+            } else {
+                cartBar.classList.remove('active');
+            }
+        }
+
+        function openSummary() {
+            const bg = document.getElementById('modalBg');
+            const items = document.getElementById('orderItems');
+            const total = document.getElementById('finalTotal');
+            
+            items.innerHTML = cart.map(i => `
+                <div style="display:flex; justify-content:space-between; margin-bottom:15px; font-weight:900; font-size:16px;">
+                    <span>1x ${i.name}</span>
+                    <span style="color:var(--primary);">R$ ${i.price.toFixed(2).replace('.', ',')}</span>
+                </div>
+            `).join('');
+            
+            const sum = cart.reduce((acc, i) => acc + i.price, 0);
+            total.innerText = `R$ ${sum.toFixed(2).replace('.', ',')}`;
+            
+            bg.classList.add('active');
+        }
+
+        function closeSummary() {
+            document.getElementById('modalBg').classList.remove('active');
+        }
+
+        function finishOrder() {
+            alert('PEDIDO ENVIADO! PREPARE O ESTÔMAGO!');
+            cart = [];
+            updateCart();
+            closeSummary();
+        }
+
+        function sendWhatsApp() {
+            alert('WhatsApp Fast: Manda o burger agora!');
+        }
+    </script>
+</body>
+</html>
