@@ -302,6 +302,29 @@
         .user-email { display: block; font-size: 11px; color: var(--gray); }
         .avatar-circle { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), #ff8c00); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; }
         .btn-logout { background: rgba(255, 51, 51, 0.1); border: 1px solid rgba(255, 51, 51, 0.2); color: #ff4757; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; }
+
+        /* Role based visibility */
+        .admin-only { display: none; }
+        .user-only { display: block; }
+        body.is-admin .user-only { display: none; }
+        body.is-admin .admin-only { display: block; }
+
+        .admin-notif-badge {
+            background: #ff4757;
+            color: white;
+            font-size: 10px;
+            font-weight: 800;
+            min-width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            position: absolute;
+            top: 5px;
+            right: -22px;
+            box-shadow: 0 0 10px rgba(255, 71, 87, 0.5);
+        }
     </style>
 </head>
 <body>
@@ -310,6 +333,19 @@
             <a href="dashboard.html" class="logo">QR<span>chef</span></a>
             
             <div class="header-nav-center nav-container">
+                <!-- Menu do Cliente -->
+                <div class="nav-menu user-only" role="menubar">
+                    <a href="dashboard.html" class="nav-link" role="menuitem">Início</a>
+                    <a href="admin-systems-showcase.html" class="nav-link active" role="menuitem">Sistemas</a>
+                    <a href="dashboard.html#servicos" class="nav-link" role="menuitem">Serviços</a>
+                    <a href="dashboard.html#planos" class="nav-link" role="menuitem">Planos</a>
+                    <a href="dashboard.html#suporte" class="nav-link" role="menuitem">Suporte</a>
+                    <a href="dashboard.html#carrinho" class="nav-link" role="menuitem">
+                        <i class="fas fa-shopping-cart"></i>
+                    </a>
+                </div>
+
+                <!-- Menu do Admin -->
                 <div class="nav-menu admin-only" role="menubar">
                     <a href="dashboard.html" class="nav-link" role="menuitem">Dashboard</a>
                     <a href="admin-clients.html" class="nav-link" role="menuitem">Clientes</a>
@@ -663,6 +699,23 @@
                 document.querySelectorAll('.user-name').forEach(el => el.textContent = user.name);
                 document.querySelectorAll('.user-email').forEach(el => el.textContent = user.email);
                 document.querySelectorAll('.avatar-circle').forEach(el => el.textContent = user.name.charAt(0).toUpperCase());
+                
+                // Admin logic
+                if (user.email === 'adminsistema@sistema.com' || user.email === 'adminsistema2@sistema.com') {
+                    document.body.classList.add('is-admin');
+                } else {
+                    // For clients, change "Implantar" text to something more customer-facing
+                    document.querySelectorAll('.btn-deploy').forEach(btn => {
+                        btn.innerHTML = '<i class="fas fa-shopping-cart"></i> Adquirir';
+                        btn.href = '#'; // In a real app, this would lead to a checkout or contact
+                        btn.onclick = (e) => {
+                            e.preventDefault();
+                            alert('Este sistema estará disponível para compra em breve! Entre em contato com o suporte para mais informações.');
+                        };
+                    });
+                }
+            } else {
+                window.location.href = 'login.html';
             }
         });
 

@@ -346,6 +346,7 @@
                 <!-- Menu do Cliente -->
                 <div class="nav-menu user-only" role="menubar">
                     <a href="#" class="nav-link active" onclick="showSection('inicio')" role="menuitem">Início</a>
+                    <a href="admin-systems-showcase.html" class="nav-link" role="menuitem">Sistemas</a>
                     <a href="#" class="nav-link" onclick="showSection('servicos')" role="menuitem">Serviços</a>
                     <a href="#" class="nav-link" onclick="showSection('planos')" role="menuitem">Planos</a>
                     <a href="#" class="nav-link" onclick="showSection('suporte')" role="menuitem">Suporte</a>
@@ -833,6 +834,14 @@
                 alert(`Simulação: O PDF com os dados de ${start} até ${end} foi gerado e enviado para o seu e-mail administrativo.`);
             }, 1500);
         }
+
+        // Check for section in hash on load
+        document.addEventListener('DOMContentLoaded', () => {
+            const hash = window.location.hash.replace('#', '');
+            if (hash) {
+                showSection(hash);
+            }
+        });
 
         function showSection(sectionId) {
             // Remove active de todos os links e seções
