@@ -4,7 +4,14 @@ import { cors } from 'hono/cors'
 const app = new Hono()
 
 // Habilita o CORS para que o seu frontend consiga conversar com o backend
-app.use('*', cors())
+app.use('*', cors({
+    origin: '*', // Em produção, você pode restringir para 'https://q-rchef.vercel.app'
+    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowHeaders: ['Content-Type', 'Authorization'],
+    exposeHeaders: ['Content-Length', 'X-Kuma-Revision'],
+    maxAge: 600,
+    credentials: true,
+}))
 
 // Rota raiz para evitar o erro 404
 app.get('/', (c) => {

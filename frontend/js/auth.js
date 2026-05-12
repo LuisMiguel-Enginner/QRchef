@@ -1,8 +1,10 @@
 // Configurações de API do Cloudflare
 const CF_CONFIG = {
-    BASE_URL: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-        ? 'http://127.0.0.1:8787' // URL padrão do Wrangler local
-        : 'https://qrchef-worker.your-subdomain.workers.dev', // URL de produção
+    BASE_URL: (window.location.hostname === 'localhost' || 
+               window.location.hostname === '127.0.0.1' || 
+               window.location.hostname.startsWith('192.168.')) 
+        ? `${window.location.protocol}//${window.location.hostname}:8787` 
+        : 'https://qrchef-worker.claudio-m-martins.workers.dev', // URL atualizada
 };
 
 // Utilitários de UI

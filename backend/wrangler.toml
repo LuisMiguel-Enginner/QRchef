@@ -5,5 +5,5 @@ compatibility_date = "2024-01-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "qrchef-db"
-database_id = "COLE_SEU_DATABASE_ID_AQUI"
+database_id = "ef9f92a0-cfaf-4b0d-94dd-2d981f68c2a6"
 
