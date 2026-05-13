@@ -280,16 +280,19 @@ nav {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 80px;
-    align-items: center;
+    align-items: stretch; /* Mudado de center para stretch para preencher a altura */
     padding: 100px 0;
 }
 
 .split-image {
     position: relative;
+    min-height: 500px; /* Garante uma altura mínima */
 }
 
 .split-image img {
     width: 100%;
+    height: 100%;
+    object-fit: cover; /* Faz a imagem cobrir todo o espaço sem distorcer */
     border-radius: 32px;
     box-shadow: 0 30px 60px rgba(0,0,0,0.5);
 }
@@ -408,6 +411,10 @@ nav {
 }
 
 /* --- Plans Section --- */
+#plans {
+    padding: 100px 0 160px; /* Aumentado o padding inferior para dar mais ar */
+}
+
 .plans-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -606,6 +613,22 @@ nav {
     font-size: 20px;
     margin-bottom: 48px;
     color: rgba(255, 255, 255, 0.9);
+}
+
+.btn-cta-dark {
+    background: var(--black) !important;
+    color: var(--white) !important;
+    border: 2px solid var(--white) !important;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3) !important;
+    padding: 28px 64px !important; /* Aumentado de 22px 48px para 28px 64px */
+    font-size: 22px !important; /* Aumentado de 16px para 22px */
+    border-radius: 20px !important; /* Bordas mais arredondadas para o tamanho maior */
+}
+
+.btn-cta-dark:hover {
+    background: var(--white) !important;
+    color: var(--black) !important;
+    transform: translateY(-5px) scale(1.05);
 }
 
 /* --- Footer Clean Up --- */
