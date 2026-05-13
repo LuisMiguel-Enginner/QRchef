@@ -1,32 +1,6 @@
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
-// .wrangler/tmp/bundle-hUDnAz/checked-fetch.js
-var urls = /* @__PURE__ */ new Set();
-function checkURL(request, init) {
-  const url = request instanceof URL ? request : new URL(
-    (typeof request === "string" ? new Request(request, init) : request).url
-  );
-  if (url.port && url.port !== "443" && url.protocol === "https:") {
-    if (!urls.has(url.toString())) {
-      urls.add(url.toString());
-      console.warn(
-        `WARNING: known issue with \`fetch()\` requests to custom HTTPS ports in published Workers:
- - ${url.toString()} - the custom port will be ignored when the Worker is published using the \`wrangler deploy\` command.
-`
-      );
-    }
-  }
-}
-__name(checkURL, "checkURL");
-globalThis.fetch = new Proxy(globalThis.fetch, {
-  apply(target, thisArg, argArray) {
-    const [request, init] = argArray;
-    checkURL(request, init);
-    return Reflect.apply(target, thisArg, argArray);
-  }
-});
-
 // node_modules/hono/dist/compose.js
 var compose = /* @__PURE__ */ __name((middleware, onError, onNotFound) => {
   return (context, next) => {
@@ -2252,8 +2226,8 @@ app.post("/auth/login", async (c) => {
   const { email, password } = await c.req.json();
   const { DB } = c.env;
   try {
-    const user = await DB.prepare("SELECT * FROM users WHERE email = ?").bind(email).first();
-    if (user && password.trim() === user.password.trim()) {
+    const user = await DB.prepare("SELECT * FROM users WHERE email = ? AND password = ?").bind(email, password).first();
+    if (user) {
       return c.json({
         success: true,
         token: "sessao_" + btoa(email),
@@ -2425,7 +2399,7 @@ app.get("/cardapio/:slug", async (c) => {
     "SELECT * FROM restaurants WHERE slug = ? AND ativo = 1"
   ).bind(slug).first();
   if (!restaurant) {
-    return c.html('<h1 style="font-family:sans-serif;padding:40px">Card\xE1pio n\xE3o encontrado.</h1>', 404);
+    return c.html("<h1>Card\xE1pio n\xE3o encontrado.</h1>", 404);
   }
   const { results: items } = await DB.prepare(
     "SELECT * FROM menu_items WHERE restaurant_id = ? AND disponivel = 1 ORDER BY categoria, nome"
@@ -2435,405 +2409,54 @@ app.get("/cardapio/:slug", async (c) => {
     if (!categorias[item.categoria]) categorias[item.categoria] = [];
     categorias[item.categoria].push(item);
   }
-  const categoriasArray = Object.keys(categorias);
-  const cor = restaurant.cor_primaria || "#ff4757";
-  const menuDataJS = ` 
-    const menuData = { 
-      categories: ${JSON.stringify(categoriasArray)}, 
-      items: ${JSON.stringify(items.map((i) => ({
-    category: i.categoria,
-    name: i.nome,
-    desc: i.descricao || "",
-    price: i.preco,
-    img: i.foto_url || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400"
-  })))} 
-    }; 
-    const restaurantName = ${JSON.stringify(restaurant.nome)}; 
-    const primaryColor = ${JSON.stringify(cor)}; 
-  `;
+  const categoriasHTML = Object.entries(categorias).map(([cat, itens]) => ` 
+    <section class="cat"> 
+      <h2>${cat}</h2> 
+      ${itens.map((item) => ` 
+        <div class="item"> 
+          ${item.foto_url ? `<img src="${item.foto_url}" alt="${item.nome}">` : ""} 
+          <div class="info"> 
+            <h3>${item.nome}</h3> 
+            <p>${item.descricao || ""}</p> 
+            <span class="preco">R$ ${Number(item.preco).toFixed(2)}</span> 
+          </div> 
+        </div> 
+      `).join("")} 
+    </section> 
+  `).join("");
   const html = `<!DOCTYPE html> 
 <html lang="pt-BR"> 
 <head> 
   <meta charset="UTF-8"> 
   <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-  <title>${restaurant.nome} | Card\xE1pio</title> 
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"> 
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"> 
+  <title>${restaurant.nome}</title> 
   <style> 
-    :root { 
-      --primary: ${cor}; 
-      --primary-light: ${cor}22; 
-      --bg: #f8f9fa; 
-      --card-bg: #ffffff; 
-      --text: #1a1a1a; 
-      --text-muted: #718096; 
-      --radius-lg: 24px; 
-      --radius-md: 16px; 
-      --shadow: 0 10px 30px -5px rgba(0,0,0,0.05); 
-      --transition: all 0.3s cubic-bezier(0.4,0,0.2,1); 
-    } 
-    * { margin:0; padding:0; box-sizing:border-box; font-family:'Plus Jakarta Sans',sans-serif; -webkit-tap-highlight-color:transparent; } 
-    body { background:var(--bg); color:var(--text); padding-bottom:120px; line-height:1.6; overflow-x:hidden; } 
-
-    .loading-screen { position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:1000; display:flex; align-items:center; justify-content:center; transition:opacity 0.5s ease,visibility 0.5s; } 
-    .loading-screen.hidden { opacity:0; visibility:hidden; } 
-
-    header { background:rgba(255,255,255,0.8); backdrop-filter:blur(15px); padding:20px; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:100; border-bottom:1px solid rgba(0,0,0,0.03); } 
-    .logo-icon { width:32px; height:32px; background:var(--primary); border-radius:10px; display:flex; align-items:center; justify-content:center; color:white; font-size:16px; } 
-    .logo-text { font-weight:800; font-size:18px; color:var(--text); letter-spacing:-0.5px; margin-left:10px; } 
-
-    .hero { padding:30px 20px; background:linear-gradient(180deg,#fff 0%,var(--bg) 100%); } 
-    .hero h1 { font-size:32px; font-weight:800; letter-spacing:-1px; margin-bottom:8px; } 
-    .hero p { color:var(--text-muted); font-size:15px; font-weight:500; } 
-
-    .categories { display:flex; gap:12px; padding:0 20px 25px; overflow-x:auto; scrollbar-width:none; position:sticky; top:72px; background:var(--bg); z-index:90; } 
-    .categories::-webkit-scrollbar { display:none; } 
-    .cat-pill { padding:12px 24px; background:var(--card-bg); border-radius:100px; white-space:nowrap; font-size:14px; font-weight:700; cursor:pointer; border:1px solid rgba(0,0,0,0.03); transition:var(--transition); color:var(--text-muted); box-shadow:var(--shadow); } 
-    .cat-pill.active { background:var(--primary); color:#fff; border-color:var(--primary); transform:scale(1.05); box-shadow:0 10px 20px -5px ${cor}55; } 
-
-    .menu-items { padding:0 20px; } 
-    .section-title { font-size:20px; margin-bottom:20px; font-weight:800; letter-spacing:-0.5px; display:flex; align-items:center; gap:10px; } 
-    .section-title::after { content:''; flex:1; height:1px; background:rgba(0,0,0,0.05); } 
-
-    .item-card { background:var(--card-bg); border-radius:var(--radius-lg); padding:15px; margin-bottom:20px; display:flex; gap:15px; align-items:center; box-shadow:var(--shadow); border:1px solid rgba(0,0,0,0.02); transition:var(--transition); cursor:pointer; } 
-    .item-card:active { transform:scale(0.97); } 
-    .item-img { width:100px; height:100px; border-radius:var(--radius-md); object-fit:cover; flex-shrink:0; box-shadow:0 5px 15px rgba(0,0,0,0.08); } 
-    .item-img-placeholder { width:100px; height:100px; border-radius:var(--radius-md); background:#f0f0f0; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:#ccc; font-size:28px; } 
-    .item-info { flex:1; min-width:0; } 
-    .item-info h4 { font-size:16px; font-weight:700; margin-bottom:4px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; } 
-    .item-info p { font-size:13px; color:var(--text-muted); line-height:1.4; margin-bottom:10px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; } 
-    .item-footer { display:flex; justify-content:space-between; align-items:center; } 
-    .item-price { font-weight:800; color:var(--primary); font-size:17px; letter-spacing:-0.5px; } 
-    .btn-add { width:36px; height:36px; background:var(--primary-light); color:var(--primary); border-radius:12px; display:flex; align-items:center; justify-content:center; transition:var(--transition); } 
-    .item-card:hover .btn-add { background:var(--primary); color:white; } 
-
-    .empty-state { text-align:center; padding:60px 20px; color:var(--text-muted); } 
-    .empty-state i { font-size:48px; margin-bottom:16px; display:block; opacity:0.3; } 
-
-    .cart-bar { position:fixed; bottom:30px; left:20px; right:20px; background:#1a1a1a; color:#fff; padding:18px 24px; border-radius:20px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 20px 40px rgba(0,0,0,0.3); z-index:200; transform:translateY(150%); transition:all 0.5s cubic-bezier(0.175,0.885,0.32,1.275); cursor:pointer; } 
-    .cart-bar.active { transform:translateY(0); } 
-    .cart-badge { background:var(--primary); color:white; width:24px; height:24px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; } 
-    .cart-label { font-weight:700; font-size:15px; margin-left:12px; } 
-    .cart-total { font-weight:800; font-size:16px; color:var(--primary); } 
-
-    .modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter:blur(8px); z-index:500; display:none; opacity:0; transition:opacity 0.3s ease; } 
-    .modal-overlay.active { display:block; opacity:1; } 
-    .checkout-modal { position:fixed; bottom:0; left:0; width:100%; background:#fff; border-radius:32px 32px 0 0; z-index:501; padding:30px 24px; transform:translateY(100%); transition:transform 0.4s cubic-bezier(0.23,1,0.32,1); max-height:90vh; overflow-y:auto; } 
-    .modal-overlay.active ~ .checkout-modal { transform:translateY(0); } 
-    .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; } 
-    .modal-header h3 { font-size:22px; font-weight:800; } 
-    .order-summary { background:var(--bg); border-radius:var(--radius-md); padding:20px; margin-bottom:25px; } 
-    .order-item { display:flex; justify-content:space-between; margin-bottom:12px; font-size:14px; font-weight:600; } 
-    .order-total-row { margin-top:15px; padding-top:15px; border-top:1px dashed rgba(0,0,0,0.1); display:flex; justify-content:space-between; font-weight:800; font-size:18px; } 
-    .input-group { margin-bottom:20px; } 
-    .input-group label { display:block; font-size:13px; font-weight:700; color:var(--text-muted); margin-bottom:8px; } 
-    .input-group input, .input-group select { width:100%; padding:15px; background:var(--bg); border:1px solid rgba(0,0,0,0.05); border-radius:12px; font-size:14px; font-weight:600; outline:none; } 
-    .btn-finish { width:100%; padding:20px; background:var(--primary); color:#fff; border:none; border-radius:16px; font-weight:800; font-size:16px; cursor:pointer; } 
-
-    .btn-whatsapp-float { position:fixed; right:20px; bottom:110px; width:56px; height:56px; background:#25D366; color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px; box-shadow:0 10px 25px rgba(37,211,102,0.3); cursor:pointer; z-index:150; } 
+    * { margin:0; padding:0; box-sizing:border-box } 
+    body { font-family: sans-serif; background: #f5f5f5; } 
+    header { background: ${restaurant.cor_primaria}; color: white; padding: 24px; text-align: center; } 
+    header img { width: 72px; border-radius: 50%; margin-bottom: 10px; display: block; margin: 0 auto 10px; } 
+    header h1 { font-size: 1.5rem; } 
+    .cat { padding: 20px 16px 0; } 
+    .cat h2 { font-size: 1.1rem; color: #333; border-bottom: 2px solid ${restaurant.cor_primaria}; padding-bottom: 6px; margin-bottom: 14px; } 
+    .item { display: flex; gap: 12px; background: white; border-radius: 12px; padding: 12px; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,.08); } 
+    .item img { width: 88px; height: 88px; object-fit: cover; border-radius: 8px; flex-shrink: 0; } 
+    .info h3 { font-size: .95rem; margin-bottom: 4px; } 
+    .info p { font-size: .82rem; color: #666; margin-bottom: 8px; } 
+    .preco { font-weight: bold; color: ${restaurant.cor_primaria}; } 
   </style> 
 </head> 
 <body> 
-  <div class="loading-screen" id="loader"> 
-    <div class="logo-icon"><i class="fas fa-utensils fa-spin"></i></div> 
-  </div> 
-
   <header> 
-    <div style="display:flex;align-items:center;"> 
-      <div class="logo-icon"><i class="fas fa-utensils"></i></div> 
-      <div class="logo-text" id="resName"></div> 
-    </div> 
+    ${restaurant.logo_url ? `<img src="${restaurant.logo_url}" alt="Logo">` : ""} 
+    <h1>${restaurant.nome}</h1> 
   </header> 
-
-  <section class="hero"> 
-    <h1 id="heroTitle"></h1> 
-    <p>Navegue pelo card\xE1pio e fa\xE7a seu pedido.</p> 
-  </section> 
-
-  <nav class="categories" id="categoryNav"></nav> 
-  <main class="menu-items" id="itemsContainer"></main> 
-
-  <div class="btn-whatsapp-float"><i class="fab fa-whatsapp"></i></div> 
-
-  <div class="cart-bar" id="cartBar" onclick="openCheckout()"> 
-    <div style="display:flex;align-items:center;"> 
-      <div class="cart-badge" id="cartCount">0</div> 
-      <div class="cart-label">Ver meu pedido</div> 
-    </div> 
-    <div class="cart-total" id="cartTotal">R$ 0,00</div> 
-  </div> 
-
-  <div class="modal-overlay" id="modalOverlay" onclick="closeCheckout()"></div> 
-   <div class="checkout-modal" id="checkoutModal"> 
-     <div class="modal-header"> 
-       <h3>Finalizar Pedido</h3> 
-       <i class="fas fa-times" style="font-size:24px;color:#718096;cursor:pointer;" onclick="closeCheckout()"></i> 
-     </div> 
-     <div class="order-summary" id="orderSummary"></div> 
-     <div class="input-group"><label>NOME</label><input type="text" placeholder="Seu nome"></div> 
-     <div class="input-group"><label>FORMA DE RECEBIMENTO</label> 
-       <select><option>Entrega (Delivery)</option><option>Retirada no Local</option><option>Mesa</option></select> 
-     </div> 
-     <div class="input-group"><label>ENDERE\xC7O / MESA</label><input type="text" placeholder="Endere\xE7o ou n\xFAmero da mesa"></div> 
-     <button class="btn-finish" onclick="finishOrder()"><i class="fab fa-whatsapp" style="margin-right:10px;"></i>ENVIAR PARA WHATSAPP</button> 
-   </div> 
- 
-   <script> 
-     ${menuDataJS} 
- 
-     let cart = []; 
-     let currentCategory = menuData.categories[0] || ''; 
- 
-     document.getElementById('resName').textContent = restaurantName; 
-     document.getElementById('heroTitle').textContent = restaurantName; 
- 
-     window.addEventListener('load', () => { 
-       setTimeout(() => document.getElementById('loader').classList.add('hidden'), 800); 
-       if (menuData.categories.length === 0) { 
-         document.getElementById('itemsContainer').innerHTML = '<div class="empty-state"><i class="fas fa-utensils"></i><p>Card\xE1pio em breve!</p></div>'; 
-         return; 
-       } 
-       renderCategories(); 
-       renderItems(); 
-     }); 
- 
-     function renderCategories() { 
-       document.getElementById('categoryNav').innerHTML = menuData.categories.map(cat => 
-         '<div class="cat-pill ' + (cat === currentCategory ? 'active' : '') + '" onclick="setCategory(\\'' + cat + '\\')">' + cat + '</div>' 
-       ).join(''); 
-     } 
- 
-     function setCategory(cat) { 
-       currentCategory = cat; 
-       renderCategories(); 
-       const c = document.getElementById('itemsContainer'); 
-       c.style.opacity = '0'; 
-       setTimeout(() => { renderItems(); c.style.opacity = '1'; }, 200); 
-     } 
- 
-     function renderItems() { 
-       const filtered = menuData.items.filter(i => i.category === currentCategory); 
-       document.getElementById('itemsContainer').innerHTML = 
-         '<h3 class="section-title">' + currentCategory + '</h3>' + 
-         filtered.map(item => 
-           '<div class="item-card" onclick="addToCart(\\'' + item.name.replace(/'/g, "\\\\'") + '\\',' + item.price + ')">' + 
-           (item.img 
-             ? '<img src="' + item.img + '" class="item-img" onerror="this.parentNode.innerHTML=\\'<div class=item-img-placeholder><i class=fas fa-image></i></div>\\'">' 
-             : '<div class="item-img-placeholder"><i class="fas fa-image"></i></div>') + 
-           '<div class="item-info"><h4>' + item.name + '</h4><p>' + item.desc + '</p>' + 
-           '<div class="item-footer"><div class="item-price">R$ ' + item.price.toFixed(2).replace('.',',') + '</div>' + 
-           '<div class="btn-add"><i class="fas fa-plus"></i></div></div></div></div>' 
-         ).join(''); 
-     } 
- 
-     function addToCart(name, price) { 
-       cart.push({ name, price }); 
-       const bar = document.getElementById('cartBar'); 
-       bar.classList.add('active'); 
-       document.getElementById('cartCount').textContent = cart.length; 
-       const sum = cart.reduce((a, i) => a + i.price, 0); 
-       document.getElementById('cartTotal').textContent = 'R$ ' + sum.toFixed(2).replace('.',','); 
-     } 
- 
-     function openCheckout() { 
-       const sum = cart.reduce((a, i) => a + i.price, 0); 
-       document.getElementById('orderSummary').innerHTML = 
-         cart.map(i => '<div class="order-item"><span>1x ' + i.name + '</span><span>R$ ' + i.price.toFixed(2).replace('.',',') + '</span></div>').join('') + 
-         '<div class="order-total-row"><span>Total</span><span>R$ ' + sum.toFixed(2).replace('.',',') + '</span></div>'; 
-       document.getElementById('modalOverlay').classList.add('active'); 
-       document.getElementById('checkoutModal').style.transform = 'translateY(0)'; 
-     } 
- 
-     function closeCheckout() { 
-       document.getElementById('modalOverlay').classList.remove('active'); 
-       document.getElementById('checkoutModal').style.transform = 'translateY(100%)'; 
-     } 
- 
-     function finishOrder() { 
-       const sum = cart.reduce((a, i) => a + i.price, 0); 
-       alert('Pedido de R$ ' + sum.toFixed(2) + ' enviado!'); 
-       cart = []; 
-       document.getElementById('cartBar').classList.remove('active'); 
-       closeCheckout(); 
-     } 
-   <\/script> 
- </body> 
- </html>`;
+  <main style="padding-bottom:32px">${categoriasHTML || '<p style="padding:20px;color:#666">Nenhum item no card\xE1pio ainda.</p>'}</main> 
+</body> 
+</html>`;
   return c.html(html);
 });
-var src_default = app;
-
-// node_modules/wrangler/templates/middleware/middleware-ensure-req-body-drained.ts
-var drainBody = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx) => {
-  try {
-    return await middlewareCtx.next(request, env);
-  } finally {
-    try {
-      if (request.body !== null && !request.bodyUsed) {
-        const reader = request.body.getReader();
-        while (!(await reader.read()).done) {
-        }
-      }
-    } catch (e) {
-      console.error("Failed to drain the unused request body.", e);
-    }
-  }
-}, "drainBody");
-var middleware_ensure_req_body_drained_default = drainBody;
-
-// node_modules/wrangler/templates/middleware/middleware-miniflare3-json-error.ts
-function reduceError(e) {
-  return {
-    name: e?.name,
-    message: e?.message ?? String(e),
-    stack: e?.stack,
-    cause: e?.cause === void 0 ? void 0 : reduceError(e.cause)
-  };
-}
-__name(reduceError, "reduceError");
-var jsonError = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx) => {
-  try {
-    return await middlewareCtx.next(request, env);
-  } catch (e) {
-    const error = reduceError(e);
-    return Response.json(error, {
-      status: 500,
-      headers: { "MF-Experimental-Error-Stack": "true" }
-    });
-  }
-}, "jsonError");
-var middleware_miniflare3_json_error_default = jsonError;
-
-// .wrangler/tmp/bundle-hUDnAz/middleware-insertion-facade.js
-var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
-  middleware_ensure_req_body_drained_default,
-  middleware_miniflare3_json_error_default
-];
-var middleware_insertion_facade_default = src_default;
-
-// node_modules/wrangler/templates/middleware/common.ts
-var __facade_middleware__ = [];
-function __facade_register__(...args) {
-  __facade_middleware__.push(...args.flat());
-}
-__name(__facade_register__, "__facade_register__");
-function __facade_invokeChain__(request, env, ctx, dispatch, middlewareChain) {
-  const [head, ...tail] = middlewareChain;
-  const middlewareCtx = {
-    dispatch,
-    next(newRequest, newEnv) {
-      return __facade_invokeChain__(newRequest, newEnv, ctx, dispatch, tail);
-    }
-  };
-  return head(request, env, ctx, middlewareCtx);
-}
-__name(__facade_invokeChain__, "__facade_invokeChain__");
-function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
-  return __facade_invokeChain__(request, env, ctx, dispatch, [
-    ...__facade_middleware__,
-    finalMiddleware
-  ]);
-}
-__name(__facade_invoke__, "__facade_invoke__");
-
-// .wrangler/tmp/bundle-hUDnAz/middleware-loader.entry.ts
-var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
-  constructor(scheduledTime, cron, noRetry) {
-    this.scheduledTime = scheduledTime;
-    this.cron = cron;
-    this.#noRetry = noRetry;
-  }
-  static {
-    __name(this, "__Facade_ScheduledController__");
-  }
-  #noRetry;
-  noRetry() {
-    if (!(this instanceof ___Facade_ScheduledController__)) {
-      throw new TypeError("Illegal invocation");
-    }
-    this.#noRetry();
-  }
-};
-function wrapExportedHandler(worker) {
-  if (__INTERNAL_WRANGLER_MIDDLEWARE__ === void 0 || __INTERNAL_WRANGLER_MIDDLEWARE__.length === 0) {
-    return worker;
-  }
-  for (const middleware of __INTERNAL_WRANGLER_MIDDLEWARE__) {
-    __facade_register__(middleware);
-  }
-  const fetchDispatcher = /* @__PURE__ */ __name(function(request, env, ctx) {
-    if (worker.fetch === void 0) {
-      throw new Error("Handler does not export a fetch() function.");
-    }
-    return worker.fetch(request, env, ctx);
-  }, "fetchDispatcher");
-  return {
-    ...worker,
-    fetch(request, env, ctx) {
-      const dispatcher = /* @__PURE__ */ __name(function(type, init) {
-        if (type === "scheduled" && worker.scheduled !== void 0) {
-          const controller = new __Facade_ScheduledController__(
-            Date.now(),
-            init.cron ?? "",
-            () => {
-            }
-          );
-          return worker.scheduled(controller, env, ctx);
-        }
-      }, "dispatcher");
-      return __facade_invoke__(request, env, ctx, dispatcher, fetchDispatcher);
-    }
-  };
-}
-__name(wrapExportedHandler, "wrapExportedHandler");
-function wrapWorkerEntrypoint(klass) {
-  if (__INTERNAL_WRANGLER_MIDDLEWARE__ === void 0 || __INTERNAL_WRANGLER_MIDDLEWARE__.length === 0) {
-    return klass;
-  }
-  for (const middleware of __INTERNAL_WRANGLER_MIDDLEWARE__) {
-    __facade_register__(middleware);
-  }
-  return class extends klass {
-    #fetchDispatcher = /* @__PURE__ */ __name((request, env, ctx) => {
-      this.env = env;
-      this.ctx = ctx;
-      if (super.fetch === void 0) {
-        throw new Error("Entrypoint class does not define a fetch() function.");
-      }
-      return super.fetch(request);
-    }, "#fetchDispatcher");
-    #dispatcher = /* @__PURE__ */ __name((type, init) => {
-      if (type === "scheduled" && super.scheduled !== void 0) {
-        const controller = new __Facade_ScheduledController__(
-          Date.now(),
-          init.cron ?? "",
-          () => {
-          }
-        );
-        return super.scheduled(controller);
-      }
-    }, "#dispatcher");
-    fetch(request) {
-      return __facade_invoke__(
-        request,
-        this.env,
-        this.ctx,
-        this.#dispatcher,
-        this.#fetchDispatcher
-      );
-    }
-  };
-}
-__name(wrapWorkerEntrypoint, "wrapWorkerEntrypoint");
-var WRAPPED_ENTRY;
-if (typeof middleware_insertion_facade_default === "object") {
-  WRAPPED_ENTRY = wrapExportedHandler(middleware_insertion_facade_default);
-} else if (typeof middleware_insertion_facade_default === "function") {
-  WRAPPED_ENTRY = wrapWorkerEntrypoint(middleware_insertion_facade_default);
-}
-var middleware_loader_entry_default = WRAPPED_ENTRY;
+var index_default = app;
 export {
-  __INTERNAL_WRANGLER_MIDDLEWARE__,
-  middleware_loader_entry_default as default
+  index_default as default
 };
 //# sourceMappingURL=index.js.map

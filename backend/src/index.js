@@ -57,10 +57,9 @@ app.post('/auth/login', async (c) => {
     const { DB } = c.env
     
     try {
-        const user = await DB.prepare("SELECT * FROM users WHERE email = ? AND password = ?")
-            .bind(email, password).first()
+        const user = await DB.prepare("SELECT * FROM users WHERE email = ?").bind(email).first();
         
-        if (user) {
+        if (user && password.trim() === user.password.trim()) {
             return c.json({ 
                 success: true,
                 token: 'sessao_' + btoa(email), // Token simulado
@@ -200,5 +199,347 @@ app.get('/client/systems/:userId', async (c) => {
         return c.json({ success: false, message: "Erro ao buscar sistemas." }, 500)
     }
 })
+
+// ─── HELPER: pega user_id do token ─────────────────────────────────────────── 
+function getUserIdFromToken(c) { 
+  const auth = c.req.header('Authorization') || ''; 
+  const token = auth.replace('Bearer ', ''); 
+  // Seu token atual é "sessao_" + btoa(email) 
+  // Precisamos buscar o user pelo email decodificado 
+  if (!token.startsWith('sessao_')) return null; 
+  try { 
+    return atob(token.replace('sessao_', '')); // retorna o email 
+  } catch { 
+    return null; 
+  } 
+} 
+
+// ─── CRIAR RESTAURANTE ─────────────────────────────────────────────────────── 
+app.post('/restaurant/create', async (c) => { 
+  const email = getUserIdFromToken(c); 
+  if (!email) return c.json({ success: false, message: 'Não autenticado.' }, 401); 
+
+  const { nome, slug, cor_primaria } = await c.req.json(); 
+  const { DB } = c.env; 
+
+  // Busca o user pelo email 
+  const user = await DB.prepare('SELECT id FROM users WHERE email = ?').bind(email).first(); 
+  if (!user) return c.json({ success: false, message: 'Usuário não encontrado.' }, 404); 
+
+  // Gera slug automático se não enviado 
+  const finalSlug = (slug || nome) 
+    .toLowerCase() 
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') 
+    .replace(/[^a-z0-9]+/g, '-') 
+    .replace(/^-|-$/g, ''); 
+
+  try { 
+    await DB.prepare( 
+      'INSERT INTO restaurants (user_id, slug, nome, cor_primaria) VALUES (?, ?, ?, ?)' 
+    ).bind(user.id, finalSlug, nome, cor_primaria || '#e63946').run(); 
+
+    return c.json({ 
+      success: true, 
+      slug: finalSlug, 
+      link: `https://qrchef-worker.luismiguelgomesoliveira-014.workers.dev/cardapio/${finalSlug}` 
+    }); 
+  } catch (e) { 
+    return c.json({ success: false, message: 'Esse nome já está em uso.' }, 409); 
+  } 
+}); 
+
+// ─── LISTAR RESTAURANTES DO USUÁRIO ────────────────────────────────────────── 
+app.get('/restaurant/mine', async (c) => { 
+  const email = getUserIdFromToken(c); 
+  if (!email) return c.json({ success: false, message: 'Não autenticado.' }, 401); 
+
+  const { DB } = c.env; 
+  const user = await DB.prepare('SELECT id FROM users WHERE email = ?').bind(email).first(); 
+  if (!user) return c.json({ success: false, message: 'Usuário não encontrado.' }, 404); 
+
+  const { results } = await DB.prepare( 
+    'SELECT * FROM restaurants WHERE user_id = ?' 
+  ).bind(user.id).all(); 
+
+  return c.json({ success: true, restaurants: results }); 
+}); 
+
+// ─── ADICIONAR ITEM AO CARDÁPIO ─────────────────────────────────────────────── 
+app.post('/restaurant/:slug/items', async (c) => { 
+  const email = getUserIdFromToken(c); 
+  if (!email) return c.json({ success: false, message: 'Não autenticado.' }, 401); 
+
+  const slug = c.req.param('slug'); 
+  const { nome, descricao, preco, categoria, foto_url } = await c.req.json(); 
+  const { DB } = c.env; 
+
+  const user = await DB.prepare('SELECT id FROM users WHERE email = ?').bind(email).first(); 
+  const restaurant = await DB.prepare( 
+    'SELECT * FROM restaurants WHERE slug = ? AND user_id = ?' 
+  ).bind(slug, user.id).first(); 
+
+  if (!restaurant) return c.json({ success: false, message: 'Restaurante não encontrado.' }, 404); 
+
+  await DB.prepare( 
+    'INSERT INTO menu_items (restaurant_id, categoria, nome, descricao, preco, foto_url) VALUES (?, ?, ?, ?, ?, ?)' 
+  ).bind(restaurant.id, categoria, nome, descricao, preco, foto_url || null).run(); 
+
+  return c.json({ success: true, message: 'Item adicionado!' }); 
+}); 
+
+// ─── CARDÁPIO PÚBLICO (o que o cliente final vê) ───────────────────────────── 
+app.get('/cardapio/:slug', async (c) => { 
+  const slug = c.req.param('slug'); 
+  const { DB } = c.env; 
+
+  const restaurant = await DB.prepare( 
+    'SELECT * FROM restaurants WHERE slug = ? AND ativo = 1' 
+  ).bind(slug).first(); 
+
+  if (!restaurant) { 
+    return c.html('<h1 style="font-family:sans-serif;padding:40px">Cardápio não encontrado.</h1>', 404); 
+  } 
+                                                                                                       
+  const { results: items } = await DB.prepare( 
+    'SELECT * FROM menu_items WHERE restaurant_id = ? AND disponivel = 1 ORDER BY categoria, nome' 
+  ).bind(restaurant.id).all(); 
+
+  // Agrupa por categoria 
+  const categorias = {}; 
+  for (const item of items) { 
+    if (!categorias[item.categoria]) categorias[item.categoria] = []; 
+    categorias[item.categoria].push(item); 
+  } 
+
+  const categoriasArray = Object.keys(categorias); 
+  const cor = restaurant.cor_primaria || '#ff4757'; 
+
+  // Gera o JS com os dados reais do banco 
+  const menuDataJS = ` 
+    const menuData = { 
+      categories: ${JSON.stringify(categoriasArray)}, 
+      items: ${JSON.stringify(items.map(i => ({ 
+        category: i.categoria, 
+        name: i.nome, 
+        desc: i.descricao || '', 
+        price: i.preco, 
+        img: i.foto_url || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400' 
+      })))} 
+    }; 
+    const restaurantName = ${JSON.stringify(restaurant.nome)}; 
+    const primaryColor = ${JSON.stringify(cor)}; 
+  `; 
+
+  const html = `<!DOCTYPE html> 
+<html lang="pt-BR"> 
+<head> 
+  <meta charset="UTF-8"> 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+  <title>${restaurant.nome} | Cardápio</title> 
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"> 
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"> 
+  <style> 
+    :root { 
+      --primary: ${cor}; 
+      --primary-light: ${cor}22; 
+      --bg: #f8f9fa; 
+      --card-bg: #ffffff; 
+      --text: #1a1a1a; 
+      --text-muted: #718096; 
+      --radius-lg: 24px; 
+      --radius-md: 16px; 
+      --shadow: 0 10px 30px -5px rgba(0,0,0,0.05); 
+      --transition: all 0.3s cubic-bezier(0.4,0,0.2,1); 
+    } 
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Plus Jakarta Sans',sans-serif; -webkit-tap-highlight-color:transparent; } 
+    body { background:var(--bg); color:var(--text); padding-bottom:120px; line-height:1.6; overflow-x:hidden; } 
+
+    .loading-screen { position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:1000; display:flex; align-items:center; justify-content:center; transition:opacity 0.5s ease,visibility 0.5s; } 
+    .loading-screen.hidden { opacity:0; visibility:hidden; } 
+
+    header { background:rgba(255,255,255,0.8); backdrop-filter:blur(15px); padding:20px; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:100; border-bottom:1px solid rgba(0,0,0,0.03); } 
+    .logo-icon { width:32px; height:32px; background:var(--primary); border-radius:10px; display:flex; align-items:center; justify-content:center; color:white; font-size:16px; } 
+    .logo-text { font-weight:800; font-size:18px; color:var(--text); letter-spacing:-0.5px; margin-left:10px; } 
+
+    .hero { padding:30px 20px; background:linear-gradient(180deg,#fff 0%,var(--bg) 100%); } 
+    .hero h1 { font-size:32px; font-weight:800; letter-spacing:-1px; margin-bottom:8px; } 
+    .hero p { color:var(--text-muted); font-size:15px; font-weight:500; } 
+
+    .categories { display:flex; gap:12px; padding:0 20px 25px; overflow-x:auto; scrollbar-width:none; position:sticky; top:72px; background:var(--bg); z-index:90; } 
+    .categories::-webkit-scrollbar { display:none; } 
+    .cat-pill { padding:12px 24px; background:var(--card-bg); border-radius:100px; white-space:nowrap; font-size:14px; font-weight:700; cursor:pointer; border:1px solid rgba(0,0,0,0.03); transition:var(--transition); color:var(--text-muted); box-shadow:var(--shadow); } 
+    .cat-pill.active { background:var(--primary); color:#fff; border-color:var(--primary); transform:scale(1.05); box-shadow:0 10px 20px -5px ${cor}55; } 
+
+    .menu-items { padding:0 20px; } 
+    .section-title { font-size:20px; margin-bottom:20px; font-weight:800; letter-spacing:-0.5px; display:flex; align-items:center; gap:10px; } 
+    .section-title::after { content:''; flex:1; height:1px; background:rgba(0,0,0,0.05); } 
+
+    .item-card { background:var(--card-bg); border-radius:var(--radius-lg); padding:15px; margin-bottom:20px; display:flex; gap:15px; align-items:center; box-shadow:var(--shadow); border:1px solid rgba(0,0,0,0.02); transition:var(--transition); cursor:pointer; } 
+    .item-card:active { transform:scale(0.97); } 
+    .item-img { width:100px; height:100px; border-radius:var(--radius-md); object-fit:cover; flex-shrink:0; box-shadow:0 5px 15px rgba(0,0,0,0.08); } 
+    .item-img-placeholder { width:100px; height:100px; border-radius:var(--radius-md); background:#f0f0f0; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:#ccc; font-size:28px; } 
+    .item-info { flex:1; min-width:0; } 
+    .item-info h4 { font-size:16px; font-weight:700; margin-bottom:4px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; } 
+    .item-info p { font-size:13px; color:var(--text-muted); line-height:1.4; margin-bottom:10px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; } 
+    .item-footer { display:flex; justify-content:space-between; align-items:center; } 
+    .item-price { font-weight:800; color:var(--primary); font-size:17px; letter-spacing:-0.5px; } 
+    .btn-add { width:36px; height:36px; background:var(--primary-light); color:var(--primary); border-radius:12px; display:flex; align-items:center; justify-content:center; transition:var(--transition); } 
+    .item-card:hover .btn-add { background:var(--primary); color:white; } 
+
+    .empty-state { text-align:center; padding:60px 20px; color:var(--text-muted); } 
+    .empty-state i { font-size:48px; margin-bottom:16px; display:block; opacity:0.3; } 
+
+    .cart-bar { position:fixed; bottom:30px; left:20px; right:20px; background:#1a1a1a; color:#fff; padding:18px 24px; border-radius:20px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 20px 40px rgba(0,0,0,0.3); z-index:200; transform:translateY(150%); transition:all 0.5s cubic-bezier(0.175,0.885,0.32,1.275); cursor:pointer; } 
+    .cart-bar.active { transform:translateY(0); } 
+    .cart-badge { background:var(--primary); color:white; width:24px; height:24px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; } 
+    .cart-label { font-weight:700; font-size:15px; margin-left:12px; } 
+    .cart-total { font-weight:800; font-size:16px; color:var(--primary); } 
+
+    .modal-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter:blur(8px); z-index:500; display:none; opacity:0; transition:opacity 0.3s ease; } 
+    .modal-overlay.active { display:block; opacity:1; } 
+    .checkout-modal { position:fixed; bottom:0; left:0; width:100%; background:#fff; border-radius:32px 32px 0 0; z-index:501; padding:30px 24px; transform:translateY(100%); transition:transform 0.4s cubic-bezier(0.23,1,0.32,1); max-height:90vh; overflow-y:auto; } 
+    .modal-overlay.active ~ .checkout-modal { transform:translateY(0); } 
+    .modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; } 
+    .modal-header h3 { font-size:22px; font-weight:800; } 
+    .order-summary { background:var(--bg); border-radius:var(--radius-md); padding:20px; margin-bottom:25px; } 
+    .order-item { display:flex; justify-content:space-between; margin-bottom:12px; font-size:14px; font-weight:600; } 
+    .order-total-row { margin-top:15px; padding-top:15px; border-top:1px dashed rgba(0,0,0,0.1); display:flex; justify-content:space-between; font-weight:800; font-size:18px; } 
+    .input-group { margin-bottom:20px; } 
+    .input-group label { display:block; font-size:13px; font-weight:700; color:var(--text-muted); margin-bottom:8px; } 
+    .input-group input, .input-group select { width:100%; padding:15px; background:var(--bg); border:1px solid rgba(0,0,0,0.05); border-radius:12px; font-size:14px; font-weight:600; outline:none; } 
+    .btn-finish { width:100%; padding:20px; background:var(--primary); color:#fff; border:none; border-radius:16px; font-weight:800; font-size:16px; cursor:pointer; } 
+
+    .btn-whatsapp-float { position:fixed; right:20px; bottom:110px; width:56px; height:56px; background:#25D366; color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:24px; box-shadow:0 10px 25px rgba(37,211,102,0.3); cursor:pointer; z-index:150; } 
+  </style> 
+</head> 
+<body> 
+  <div class="loading-screen" id="loader"> 
+    <div class="logo-icon"><i class="fas fa-utensils fa-spin"></i></div> 
+  </div> 
+
+  <header> 
+    <div style="display:flex;align-items:center;"> 
+      <div class="logo-icon"><i class="fas fa-utensils"></i></div> 
+      <div class="logo-text" id="resName"></div> 
+    </div> 
+  </header> 
+
+  <section class="hero"> 
+    <h1 id="heroTitle"></h1> 
+    <p>Navegue pelo cardápio e faça seu pedido.</p> 
+  </section> 
+
+  <nav class="categories" id="categoryNav"></nav> 
+  <main class="menu-items" id="itemsContainer"></main> 
+
+  <div class="btn-whatsapp-float"><i class="fab fa-whatsapp"></i></div> 
+
+  <div class="cart-bar" id="cartBar" onclick="openCheckout()"> 
+    <div style="display:flex;align-items:center;"> 
+      <div class="cart-badge" id="cartCount">0</div> 
+      <div class="cart-label">Ver meu pedido</div> 
+    </div> 
+    <div class="cart-total" id="cartTotal">R$ 0,00</div> 
+  </div> 
+
+  <div class="modal-overlay" id="modalOverlay" onclick="closeCheckout()"></div> 
+   <div class="checkout-modal" id="checkoutModal"> 
+     <div class="modal-header"> 
+       <h3>Finalizar Pedido</h3> 
+       <i class="fas fa-times" style="font-size:24px;color:#718096;cursor:pointer;" onclick="closeCheckout()"></i> 
+     </div> 
+     <div class="order-summary" id="orderSummary"></div> 
+     <div class="input-group"><label>NOME</label><input type="text" placeholder="Seu nome"></div> 
+     <div class="input-group"><label>FORMA DE RECEBIMENTO</label> 
+       <select><option>Entrega (Delivery)</option><option>Retirada no Local</option><option>Mesa</option></select> 
+     </div> 
+     <div class="input-group"><label>ENDEREÇO / MESA</label><input type="text" placeholder="Endereço ou número da mesa"></div> 
+     <button class="btn-finish" onclick="finishOrder()"><i class="fab fa-whatsapp" style="margin-right:10px;"></i>ENVIAR PARA WHATSAPP</button> 
+   </div> 
+ 
+   <script> 
+     ${menuDataJS} 
+ 
+     let cart = []; 
+     let currentCategory = menuData.categories[0] || ''; 
+ 
+     document.getElementById('resName').textContent = restaurantName; 
+     document.getElementById('heroTitle').textContent = restaurantName; 
+ 
+     window.addEventListener('load', () => { 
+       setTimeout(() => document.getElementById('loader').classList.add('hidden'), 800); 
+       if (menuData.categories.length === 0) { 
+         document.getElementById('itemsContainer').innerHTML = '<div class="empty-state"><i class="fas fa-utensils"></i><p>Cardápio em breve!</p></div>'; 
+         return; 
+       } 
+       renderCategories(); 
+       renderItems(); 
+     }); 
+ 
+     function renderCategories() { 
+       document.getElementById('categoryNav').innerHTML = menuData.categories.map(cat => 
+         '<div class="cat-pill ' + (cat === currentCategory ? 'active' : '') + '" onclick="setCategory(\\'' + cat + '\\')">' + cat + '</div>' 
+       ).join(''); 
+     } 
+ 
+     function setCategory(cat) { 
+       currentCategory = cat; 
+       renderCategories(); 
+       const c = document.getElementById('itemsContainer'); 
+       c.style.opacity = '0'; 
+       setTimeout(() => { renderItems(); c.style.opacity = '1'; }, 200); 
+     } 
+ 
+     function renderItems() { 
+       const filtered = menuData.items.filter(i => i.category === currentCategory); 
+       document.getElementById('itemsContainer').innerHTML = 
+         '<h3 class="section-title">' + currentCategory + '</h3>' + 
+         filtered.map(item => 
+           '<div class="item-card" onclick="addToCart(\\'' + item.name.replace(/'/g, "\\\\'") + '\\',' + item.price + ')">' + 
+           (item.img 
+             ? '<img src="' + item.img + '" class="item-img" onerror="this.parentNode.innerHTML=\\'<div class=item-img-placeholder><i class=fas fa-image></i></div>\\'">' 
+             : '<div class="item-img-placeholder"><i class="fas fa-image"></i></div>') + 
+           '<div class="item-info"><h4>' + item.name + '</h4><p>' + item.desc + '</p>' + 
+           '<div class="item-footer"><div class="item-price">R$ ' + item.price.toFixed(2).replace('.',',') + '</div>' + 
+           '<div class="btn-add"><i class="fas fa-plus"></i></div></div></div></div>' 
+         ).join(''); 
+     } 
+ 
+     function addToCart(name, price) { 
+       cart.push({ name, price }); 
+       const bar = document.getElementById('cartBar'); 
+       bar.classList.add('active'); 
+       document.getElementById('cartCount').textContent = cart.length; 
+       const sum = cart.reduce((a, i) => a + i.price, 0); 
+       document.getElementById('cartTotal').textContent = 'R$ ' + sum.toFixed(2).replace('.',','); 
+     } 
+ 
+     function openCheckout() { 
+       const sum = cart.reduce((a, i) => a + i.price, 0); 
+       document.getElementById('orderSummary').innerHTML = 
+         cart.map(i => '<div class="order-item"><span>1x ' + i.name + '</span><span>R$ ' + i.price.toFixed(2).replace('.',',') + '</span></div>').join('') + 
+         '<div class="order-total-row"><span>Total</span><span>R$ ' + sum.toFixed(2).replace('.',',') + '</span></div>'; 
+       document.getElementById('modalOverlay').classList.add('active'); 
+       document.getElementById('checkoutModal').style.transform = 'translateY(0)'; 
+     } 
+ 
+     function closeCheckout() { 
+       document.getElementById('modalOverlay').classList.remove('active'); 
+       document.getElementById('checkoutModal').style.transform = 'translateY(100%)'; 
+     } 
+ 
+     function finishOrder() { 
+       const sum = cart.reduce((a, i) => a + i.price, 0); 
+       alert('Pedido de R$ ' + sum.toFixed(2) + ' enviado!'); 
+       cart = []; 
+       document.getElementById('cartBar').classList.remove('active'); 
+       closeCheckout(); 
+     } 
+   </script> 
+ </body> 
+ </html>`; 
+ 
+  return c.html(html); 
+}); 
 
 export default app

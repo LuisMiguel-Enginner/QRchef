@@ -1,10 +1,6 @@
 // Configurações de API do Cloudflare
 const CF_CONFIG = {
-    BASE_URL: (window.location.hostname === 'localhost' || 
-               window.location.hostname === '127.0.0.1' || 
-               window.location.hostname.startsWith('192.168.')) 
-        ? `${window.location.protocol}//${window.location.hostname}:8787` 
-        : 'https://qrchef-worker.luismiguelgomesoliveira-014.workers.dev', // URL atualizada com o seu subdomínio real
+    BASE_URL: 'https://qrchef-worker.luismiguelgomesoliveira-014.workers.dev', // URL de produção do Worker
 };
 
 // Utilitários de UI

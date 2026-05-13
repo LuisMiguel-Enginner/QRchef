@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cardápio Digital — Plano Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #faf9f7;
+    --surface: #ffffff;
+    --surface2: #f3f1ee;
+    --accent: #c8410a;
+    --accent2: #e8521a;
+    --accent-light: #fff0eb;
+    --text: #1a1614;
+    --muted: #7a746e;
+    --border: #e8e4df;
+    --radius: 14px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.07);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; min-height: 100vh; }
+
+  /* TOP BAR */
+  .top-bar {
+    background: var(--accent);
+    color: #fff;
+    text-align: center;
+    font-size: 0.78rem;
+    font-weight: 500;
+    padding: 8px 1rem;
+    letter-spacing: 0.04em;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 68px;
+    box-shadow: var(--shadow);
+  }
+  .logo-area { display: flex; align-items: center; gap: 14px; }
+  .logo-placeholder {
+    width: 44px; height: 44px;
+    background: var(--accent);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 13px;
+    color: #fff;
+    letter-spacing: 0.02em;
+  }
+  .store-info .store-name {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--text);
+  }
+  .store-info .store-sub {
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-top: 1px;
+  }
+
+  .header-right { display: flex; align-items: center; gap: 10px; }
+  .search-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.82rem;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s;
+    min-width: 160px;
+  }
+  .search-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .whatsapp-btn {
+    background: #25D366; color: #fff;
+    border: none; border-radius: 8px;
+    padding: 9px 16px; font-size: 0.82rem; font-weight: 500;
+    font-family: 'Inter', sans-serif; cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+    text-decoration: none; transition: opacity 0.2s;
+  }
+  .whatsapp-btn:hover { opacity: 0.85; }
+
+  /* SEARCH BAR (expandida) */
+  .search-bar {
+    display: none;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0.75rem 2rem;
+  }
+  .search-bar.open { display: block; }
+  .search-input {
+    width: 100%; background: var(--surface2);
+    border: 1.5px solid var(--border); border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 0.95rem; font-family: 'Inter', sans-serif;
+    color: var(--text); outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-input:focus { border-color: var(--accent); }
+
+  /* HERO */
+  .hero {
+    background: linear-gradient(135deg, var(--accent) 0%, #8b2a06 100%);
+    padding: 3rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='20'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+  .hero-text { position: relative; z-index: 1; }
+  .hero-label {
+    display: inline-block;
+    background: rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.9);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 1rem;
+  }
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.1;
+    margin-bottom: 0.75rem;
+  }
+  .hero p { color: rgba(255,255,255,0.75); font-size: 0.95rem; max-width: 380px; line-height: 1.6; }
+  .hero-stats {
+    display: flex; gap: 2rem;
+    position: relative; z-index: 1;
+    flex-shrink: 0;
+  }
+  .stat { text-align: center; }
+  .stat-num { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 700; color: #fff; }
+  .stat-label { font-size: 0.72rem; color: rgba(255,255,255,0.65); letter-spacing: 0.04em; }
+
+  /* CATEGORIES */
+  .cat-section {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    position: sticky;
+    top: 68px;
+    z-index: 90;
+    height: 52px;
+  }
+  .cat-section::-webkit-scrollbar { display: none; }
+  .cat-pill {
+    background: none; border: none;
+    padding: 6px 16px;
+    font-size: 0.85rem; font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    color: var(--muted);
+    cursor: pointer;
+    border-radius: 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .cat-pill::after {
+    content: '';
+    position: absolute;
+    bottom: -14px; left: 50%; right: 50%;
+    height: 2px;
+    background: var(--accent);
+    transition: all 0.25s;
+  }
+  .cat-pill:hover { color: var(--text); }
+  .cat-pill.active { color: var(--accent); font-weight: 600; }
+  .cat-pill.active::after { left: 12px; right: 12px; }
+
+  /* MAIN */
+  main { max-width: 1100px; margin: 0 auto; padding: 2rem; }
+
+  .no-results {
+    display: none;
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--muted);
+  }
+  .no-results.visible { display: block; }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 2.5rem 0 1.2rem;
+  }
+  .section-label {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .section-count {
+    font-size: 0.78rem;
+    color: var(--muted);
+    background: var(--surface2);
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+
+  /* PRODUCT CARDS — modo lista/grade */
+  .products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1rem;
+  }
+  .product-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    display: flex;
+    overflow: hidden;
+    cursor: pointer;
+    transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
+    box-shadow: var(--shadow);
+  }
+  .product-card:hover {
+    box-shadow: 0 8px 30px rgba(200,65,10,0.12);
+    transform: translateY(-2px);
+    border-color: rgba(200,65,10,0.25);
+  }
+  .product-img {
+    width: 110px;
+    min-height: 110px;
+    flex-shrink: 0;
+    background: var(--surface2);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .product-img img { width: 100%; height: 100%; object-fit: cover; }
+  .img-ph {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    color: var(--border);
+    padding: 1rem;
+  }
+  .img-ph svg { width: 28px; height: 28px; }
+  .img-ph span { font-size: 0.65rem; text-align: center; color: var(--muted); line-height: 1.3; }
+  .product-body {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex: 1;
+  }
+  .product-top {}
+  .product-badge {
+    display: inline-block;
+    background: var(--accent-light);
+    color: var(--accent);
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-bottom: 5px;
+  }
+  .product-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text);
+    margin-bottom: 4px;
+    line-height: 1.3;
+  }
+  .product-desc {
+    font-size: 0.8rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .product-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.75rem;
+  }
+  .product-price {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .order-btn {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-decoration: none;
+  }
+  .order-btn:hover { background: var(--accent2); }
+
+  /* VIEW TOGGLE */
+  .view-toggle {
+    display: flex;
+    gap: 4px;
+    background: var(--surface2);
+    padding: 3px;
+    border-radius: 8px;
+  }
+  .view-btn {
+    background: none; border: none;
+    padding: 5px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--muted);
+    transition: all 0.2s;
+    display: flex; align-items: center;
+  }
+  .view-btn.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .view-btn svg { width: 16px; height: 16px; }
+
+  /* GRADE mode */
+  .products-grid.grade-mode {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+  .products-grid.grade-mode .product-card {
+    flex-direction: column;
+  }
+  .products-grid.grade-mode .product-img {
+    width: 100%; height: 150px; min-height: unset;
+  }
+
+  /* FOOTER */
+  footer {
+    background: var(--text);
+    color: rgba(255,255,255,0.6);
+    text-align: center;
+    padding: 2rem 1.5rem;
+    font-size: 0.82rem;
+    margin-top: 3rem;
+  }
+  footer strong { color: var(--accent2); }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5); z-index: 200;
+    align-items: center; justify-content: center;
+    padding: 1rem;
+    backdrop-filter: blur(4px);
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border-radius: 18px;
+    width: 100%; max-width: 480px;
+    overflow: hidden;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+    animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes popIn { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: scale(1); } }
+  .modal-img {
+    width: 100%; height: 200px;
+    background: var(--surface2);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--muted); font-size: 0.82rem;
+  }
+  .modal-body { padding: 1.5rem; }
+  .modal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem; }
+  .modal-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.3rem; color: var(--text); }
+  .modal-close { background: var(--surface2); border: none; color: var(--muted); width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-left: 1rem; }
+  .modal-desc { color: var(--muted); font-size: 0.88rem; line-height: 1.7; margin-bottom: 1rem; }
+  .modal-price { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.6rem; color: var(--accent); margin-bottom: 1.25rem; }
+  .modal-wa {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    background: #25D366; color: #fff;
+    border: none; border-radius: 12px;
+    padding: 14px; width: 100%;
+    font-size: 0.95rem; font-weight: 600;
+    font-family: 'Inter', sans-serif; cursor: pointer;
+    text-decoration: none; transition: opacity 0.2s;
+  }
+  .modal-wa:hover { opacity: 0.88; }
+
+  @media (max-width: 640px) {
+    header { padding: 0 1rem; }
+    .search-bar { padding: 0.75rem 1rem; }
+    .cat-section { padding: 0 1rem; }
+    main { padding: 1rem; }
+    .hero { flex-direction: column; padding: 2rem 1.5rem; }
+    .hero-stats { gap: 1.5rem; }
+    .products-grid { grid-template-columns: 1fr; }
+    .search-btn span { display: none; }
+    .search-btn { min-width: unset; }
+  }
+</style>
+</head>
+<body>
+
+<div class="top-bar">🔥 Peça pelo cardápio e fale diretamente no WhatsApp — rápido e fácil!</div>
+
+<header>
+  <div class="logo-area">
+    <div class="logo-placeholder">LOGO</div>
+    <div class="store-info">
+      <div class="store-name">Nome do Estabelecimento</div>
+      <div class="store-sub">Slogan ou tipo de culinária do negócio</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <button class="search-btn" onclick="toggleSearch()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <span>Buscar produto...</span>
+    </button>
+    <a class="whatsapp-btn" href="https://wa.me/5500000000000" target="_blank">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      WhatsApp
+    </a>
+  </div>
+</header>
+
+<div class="search-bar" id="search-bar">
+  <input class="search-input" type="text" id="search-input" placeholder="Buscar no cardápio..." oninput="doSearch(this.value)" />
+</div>
+
+<div class="hero">
+  <div class="hero-text">
+    <div class="hero-label">Cardápio Digital Pro</div>
+    <h1>Bem-vindo ao<br>nosso cardápio</h1>
+    <p>Encontre o que desejar com facilidade. Pedidos direto pelo WhatsApp.</p>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-num">30+</div><div class="stat-label">Produtos</div></div>
+    <div class="stat"><div class="stat-num">5</div><div class="stat-label">Categorias</div></div>
+    <div class="stat"><div class="stat-num">⭐ 4.9</div><div class="stat-label">Avaliação</div></div>
+  </div>
+</div>
+
+<nav class="cat-section" id="cat-nav">
+  <button class="cat-pill active" onclick="filterCat('todos', this)">Todos</button>
+  <button class="cat-pill" onclick="filterCat('destaques', this)">⭐ Destaques</button>
+  <button class="cat-pill" onclick="filterCat('cat1', this)">Categoria 1</button>
+  <button class="cat-pill" onclick="filterCat('cat2', this)">Categoria 2</button>
+  <button class="cat-pill" onclick="filterCat('cat3', this)">Categoria 3</button>
+  <button class="cat-pill" onclick="filterCat('cat4', this)">Categoria 4</button>
+  <button class="cat-pill" onclick="filterCat('cat5', this)">Categoria 5</button>
+</nav>
+
+<main>
+  <div id="no-results" class="no-results">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5" style="margin-bottom:1rem"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <p style="color:#999;font-size:0.95rem;">Nenhum produto encontrado.</p>
+  </div>
+
+  <!-- Seção Destaques -->
+  <div class="section-wrap" id="sec-destaques" data-cat="destaques">
+    <div class="section-header">
+      <div class="section-label">⭐ Destaques</div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <span class="section-count">2 itens</span>
+        <div class="view-toggle">
+          <button class="view-btn active" title="Lista" onclick="setView(this,'lista','sec-destaques')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></button>
+          <button class="view-btn" title="Grade" onclick="setView(this,'grade','sec-destaques')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></button>
+        </div>
+      </div>
+    </div>
+    <div class="products-grid" id="grid-sec-destaques">
+      <div class="product-card" data-cat="destaques" data-name="Produto Destaque 1" onclick="openModal('Produto Destaque 1','Descrição completa e detalhada do produto. Liste ingredientes, tamanho, opções e qualquer informação útil ao cliente.','R$ 39,90','destaques')">
+        <div class="product-img"><div class="img-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg><span>Foto do Produto</span></div></div>
+        <div class="product-body">
+          <div class="product-top">
+            <div class="product-badge">Mais Pedido</div>
+            <div class="product-name">Produto Destaque 1</div>
+            <div class="product-desc">Descrição do produto, ingredientes ou informações principais que o cliente precisa saber.</div>
+          </div>
+          <div class="product-bottom">
+            <div class="product-price">R$ 39,90</div>
+            <button class="order-btn">Pedir →</button>
+          </div>
+        </div>
+      </div>
+      <div class="product-card" data-cat="destaques" data-name="Produto Destaque 2" onclick="openModal('Produto Destaque 2','Descrição completa e detalhada do produto. Liste ingredientes, tamanho, opções e qualquer informação útil ao cliente.','R$ 44,90','destaques')">
+        <div class="product-img"><div class="img-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg><span>Foto do Produto</span></div></div>
+        <div class="product-body">
+          <div class="product-top">
+            <div class="product-badge">Novidade</div>
+            <div class="product-name">Produto Destaque 2</div>
+            <div class="product-desc">Descrição do produto, ingredientes ou informações principais que o cliente precisa saber.</div>
+          </div>
+          <div class="product-bottom">
+            <div class="product-price">R$ 44,90</div>
+            <button class="order-btn">Pedir →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Categoria 1 -->
+  <div class="section-wrap" id="sec-cat1" data-cat="cat1">
+    <div class="section-header">
+      <div class="section-label">Categoria 1</div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <span class="section-count">3 itens</span>
+        <div class="view-toggle">
+          <button class="view-btn active" title="Lista" onclick="setView(this,'lista','sec-cat1')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></button>
+          <button class="view-btn" title="Grade" onclick="setView(this,'grade','sec-cat1')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></button>
+        </div>
+      </div>
+    </div>
+    <div class="products-grid" id="grid-sec-cat1">
+      <div class="product-card" data-cat="cat1" data-name="Produto 1A" onclick="openModal('Produto 1A','Descrição completa e detalhada do produto. Ingredientes, tamanhos e informações relevantes.','R$ 24,90','cat1')">
+        <div class="product-img"><div class="img-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg><span>Foto do Produto</span></div></div>
+        <div class="product-body">
+          <div class="product-top">
+            <div class="product-name">Produto 1A</div>
+            <div class="product-desc">Descrição breve do produto. Ingredientes e informações principais.</div>
+          </div>
+          <div class="product-bottom"><div class="product-price">R$ 24,90</div><button class="order-btn">Pedir →</button></div>
+        </div>
+      </div>
+      <div class="product-card" data-cat="cat1" data-name="Produto 1B" onclick="openModal('Produto 1B','Descrição completa e detalhada do produto. Ingredientes, tamanhos e informações relevantes.','R$ 28,90','cat1')">
+        <div class="product-img"><div class="img-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg><span>Foto do Produto</span></div></div>
+        <div class="product-body">
+          <div class="product-top">
+            <div class="product-name">Produto 1B</div>
+            <div class="product-desc">Descrição breve do produto. Ingredientes e informações principais.</div>
+          </div>
+          <div class="product-bottom"><div class="product-price">R$ 28,90</div><button class="order-btn">Pedir →</button></div>
+        </div>
+      </div>
+      <div class="product-card" data-cat="cat1" data-name="Produto 1C" onclick="openModal('Produto 1C','Descrição completa e detalhada do produto. Ingredientes, tamanhos e informações relevantes.','R$ 21,90','cat1')">
+        <div class="product-img"><div class="img-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg><span>Foto do Produto</span></div></div>
+        <div class="product-body">
+          <div class="product-top">
+            <div class="product-name">Produto 1C</div>
+            <div class="product-desc">Descrição breve do produto. Ingredientes e informações principais.</div>
+          </div>
+          <div class="product-bottom"><div class="product-price">R$ 21,90</div><button class="order-btn">Pedir →</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Categoria 2 -->
+  <div class="section-wrap" id="sec-cat2" data-cat="cat2">
+    <div class="section-header">
+      <div class="section-label">Categoria 2</div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <span class="section-count">2 itens</span>
+        <div class="view-toggle">
+          <button class="view-btn active" title="Lista" onclick="setView(this,'lista','sec-cat2')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></button>
+          <button class="view-btn" title="Grade" onclick="setView(this,'grade','sec-cat2')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></button>
+        </div>
+      </div>
+    </div>
+    <div class="products-grid" id="grid-sec-cat2">
+      <div class="product-card" data-cat="cat2" data-name="Produto 2A" onclick="openModal('Produto 2A','Descrição completa e detalhada.','R$ 14,90','cat2')">
+        <div class="product-img"><div class="img-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg><span>Foto do Produto</span></div></div>
+        <div class="product-body">
+          <div class="product-top">
+            <div class="product-name">Produto 2A</div>
+            <div class="product-desc">Descrição breve do produto.</div>
+          </div>
+          <div class="product-bottom"><div class="product-price">R$ 14,90</div><button class="order-btn">Pedir →</button></div>
+        </div>
+      </div>
+      <div class="product-card" data-cat="cat2" data-name="Produto 2B" onclick="openModal('Produto 2B','Descrição completa e detalhada.','R$ 16,90','cat2')">
+        <div class="product-img"><div class="img-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg><span>Foto do Produto</span></div></div>
+        <div class="product-body">
+          <div class="product-top">
+            <div class="product-name">Produto 2B</div>
+            <div class="product-desc">Descrição breve do produto.</div>
+          </div>
+          <div class="product-bottom"><div class="product-price">R$ 16,90</div><button class="order-btn">Pedir →</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Categoria 3 -->
+  <div class="section-wrap" id="sec-cat3" data-cat="cat3">
+    <div class="section-header"><div class="section-label">Categoria 3</div><span class="section-count">2 itens</span></div>
+    <div class="products-grid" id="grid-sec-cat3">
+      <div class="product-card" data-cat="cat3" data-name="Produto 3A" onclick="openModal('Produto 3A','Descrição completa.','R$ 8,00','cat3')">
+        <div class="product-img"><div class="img-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg><span>Foto do Produto</span></div></div>
+        <div class="product-body">
+          <div class="product-top"><div class="product-name">Produto 3A</div><div class="product-desc">Descrição breve.</div></div>
+          <div class="product-bottom"><div class="product-price">R$ 8,00</div><button class="order-btn">Pedir →</button></div>
+        </div>
+      </div>
+      <div class="product-card" data-cat="cat3" data-name="Produto 3B" onclick="openModal('Produto 3B','Descrição completa.','R$ 9,00','cat3')">
+        <div class="product-img"><div class="img-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg><span>Foto do Produto</span></div></div>
+        <div class="product-body">
+          <div class="product-top"><div class="product-name">Produto 3B</div><div class="product-desc">Descrição breve.</div></div>
+          <div class="product-bottom"><div class="product-price">R$ 9,00</div><button class="order-btn">Pedir →</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <p>Todos os preços já incluem impostos · Imagens meramente ilustrativas</p>
+  <p style="margin-top:6px;">Desenvolvido com <strong>♥</strong> para o seu negócio</p>
+</footer>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" onclick="closeModalOut(event)">
+  <div class="modal">
+    <div class="modal-img">📷 Foto do produto</div>
+    <div class="modal-body">
+      <div class="modal-header">
+        <div class="modal-title" id="m-title">—</div>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-desc" id="m-desc">—</div>
+      <div class="modal-price" id="m-price">—</div>
+      <a class="modal-wa" id="m-wa" href="#" target="_blank">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Pedir pelo WhatsApp
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+  const WA = '5500000000000'; // ← ALTERAR: número do WhatsApp
+
+  let searchOpen = false;
+  function toggleSearch() {
+    searchOpen = !searchOpen;
+    document.getElementById('search-bar').classList.toggle('open', searchOpen);
+    if (searchOpen) { setTimeout(() => document.getElementById('search-input').focus(), 100); }
+    else { doSearch(''); document.getElementById('search-input').value = ''; }
+  }
+
+  function doSearch(q) {
+    q = q.toLowerCase().trim();
+    const cards = document.querySelectorAll('.product-card');
+    let any = false;
+    cards.forEach(c => {
+      const n = c.dataset.name ? c.dataset.name.toLowerCase() : '';
+      const visible = !q || n.includes(q);
+      c.style.display = visible ? '' : 'none';
+      if (visible) any = true;
+    });
+    document.querySelectorAll('.section-wrap').forEach(s => {
+      const vis = [...s.querySelectorAll('.product-card')].some(c => c.style.display !== 'none');
+      s.style.display = vis ? '' : 'none';
+    });
+    document.getElementById('no-results').classList.toggle('visible', !any);
+    if (!q) { document.querySelectorAll('.section-wrap').forEach(s => s.style.display = ''); }
+  }
+
+  function filterCat(cat, btn) {
+    document.querySelectorAll('.cat-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.section-wrap').forEach(s => {
+      s.style.display = (cat === 'todos' || s.dataset.cat === cat) ? '' : 'none';
+    });
+  }
+
+  function setView(btn, mode, secId) {
+    const sec = document.getElementById(secId);
+    const btns = btn.closest('.view-toggle').querySelectorAll('.view-btn');
+    btns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const grid = sec.querySelector('.products-grid');
+    grid.classList.toggle('grade-mode', mode === 'grade');
+  }
+
+  function openModal(name, desc, price) {
+    document.getElementById('m-title').textContent = name;
+    document.getElementById('m-desc').textContent = desc;
+    document.getElementById('m-price').textContent = price;
+    const msg = encodeURIComponent(`Olá! Gostaria de fazer um pedido:\n\n*${name}* — ${price}`);
+    document.getElementById('m-wa').href = `https://wa.me/${WA}?text=${msg}`;
+    document.getElementById('modal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    document.getElementById('modal').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function closeModalOut(e) { if (e.target.id === 'modal') closeModal(); }
+</script>
+</body>
+</html>

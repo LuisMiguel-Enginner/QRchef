@@ -90,32 +90,58 @@
         }
         .demo-actions {
             display: flex;
-            gap: 15px;
+            align-items: center;
+            gap: 10px;
             margin-top: 30px;
         }
         .btn-demo {
-            flex: 2;
+            flex: 1;
             background: var(--primary);
             color: white;
-            padding: 16px;
+            height: 52px;
             border-radius: 12px;
             text-decoration: none;
             font-weight: 800;
-            font-size: 14px;
+            font-size: 13px;
             text-transform: uppercase;
             text-align: center;
             letter-spacing: 0.05em;
             box-shadow: 0 10px 20px -5px var(--primary-glow);
             transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.2;
+            padding: 0 15px;
         }
         .btn-demo:hover {
             transform: translateY(-2px);
             box-shadow: 0 15px 30px -5px var(--primary-glow);
             filter: brightness(1.1);
         }
+        .btn-info-circle {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--primary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 52px;
+            min-width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 18px;
+        }
+        .btn-info-circle:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
         .btn-buy {
             flex: 1;
-            padding: 16px;
+            height: 52px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
             text-decoration: none;
@@ -125,6 +151,9 @@
             font-weight: 700;
             transition: all 0.3s;
             background: rgba(255, 255, 255, 0.03);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .btn-buy:hover {
             background: rgba(255, 255, 255, 0.1);
@@ -252,6 +281,115 @@
             border: none;
             background: white;
         }
+
+        /* --- Info Modal --- */
+        .info-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            z-index: 3000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .info-modal.active {
+            display: flex;
+        }
+        .info-modal-content {
+            background: #111;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 32px;
+            max-width: 500px;
+            width: 100%;
+            padding: 40px;
+            position: relative;
+            animation: modalFadeIn 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .info-modal-close {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            color: #888;
+            font-size: 24px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .info-modal-close:hover { color: white; }
+        .info-tag {
+            background: var(--primary);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 100px;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+        .info-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 10px;
+        }
+        .info-description {
+            color: var(--gray);
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        .info-details {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .info-detail-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            color: #eee;
+            font-size: 14px;
+        }
+        .info-detail-item i {
+            color: var(--primary);
+            margin-top: 4px;
+        }
+        .info-price-box {
+            margin-top: 40px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            text-align: center;
+        }
+        .info-price-label {
+            color: var(--gray);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .info-price-value {
+            font-size: 32px;
+            font-weight: 800;
+            color: white;
+        }
+        .info-price-value span {
+            font-size: 14px;
+            color: var(--gray);
+            font-weight: 400;
+        }
     </style>
 </head>
 <body>
@@ -288,6 +426,9 @@
                     <p style="color: var(--gray); font-size: 15px;">Design minimalista e elegante para restaurantes de alta gastronomia que buscam exclusividade.</p>
                     <div class="demo-actions">
                         <a href="javascript:void(0)" class="btn-demo" onclick="openDemo('elite')">Visualizar Demo</a>
+                        <div class="btn-info-circle" onclick="openInfo('elite')" title="Mais informações">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
                         <a href="register.html" class="btn-buy">Comprar</a>
                     </div>
                 </div>
@@ -304,6 +445,9 @@
                     <p style="color: var(--gray); font-size: 15px;">Focado em velocidade e conversão para hamburguerias e lanchonetes de alto giro.</p>
                     <div class="demo-actions">
                         <a href="javascript:void(0)" class="btn-demo" onclick="openDemo('quick')">Visualizar Demo</a>
+                        <div class="btn-info-circle" onclick="openInfo('quick')" title="Mais informações">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
                         <a href="register.html" class="btn-buy">Comprar</a>
                     </div>
                 </div>
@@ -320,6 +464,9 @@
                     <p style="color: var(--gray); font-size: 15px;">Layout acolhedor para cafeterias, padarias e bistrôs que valorizam a experiência visual.</p>
                     <div class="demo-actions">
                         <a href="javascript:void(0)" class="btn-demo" onclick="openDemo('coffee')">Visualizar Demo</a>
+                        <div class="btn-info-circle" onclick="openInfo('coffee')" title="Mais informações">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
                         <a href="register.html" class="btn-buy">Comprar</a>
                     </div>
                 </div>
@@ -336,6 +483,9 @@
                     <p style="color: var(--gray); font-size: 15px;">Cardápio digital objetivo e funcional. Ideal para pequenos negócios e delivery rápido.</p>
                     <div class="demo-actions">
                         <a href="javascript:void(0)" class="btn-demo" onclick="openDemo('basic')">Visualizar Demo</a>
+                        <div class="btn-info-circle" onclick="openInfo('basic')" title="Mais informações">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
                         <a href="register.html" class="btn-buy">Comprar</a>
                     </div>
                 </div>
@@ -352,6 +502,9 @@
                     <p style="color: var(--gray); font-size: 15px;">Experiência completa com categorias ilimitadas, busca avançada e design moderno.</p>
                     <div class="demo-actions">
                         <a href="javascript:void(0)" class="btn-demo" onclick="openDemo('pro')">Visualizar Demo</a>
+                        <div class="btn-info-circle" onclick="openInfo('pro')" title="Mais informações">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
                         <a href="register.html" class="btn-buy">Comprar</a>
                     </div>
                 </div>
@@ -368,6 +521,9 @@
                     <p style="color: var(--gray); font-size: 15px;">O auge do design e tecnologia. Animações fluidas e personalização total da marca.</p>
                     <div class="demo-actions">
                         <a href="javascript:void(0)" class="btn-demo" onclick="openDemo('premium')">Visualizar Demo</a>
+                        <div class="btn-info-circle" onclick="openInfo('premium')" title="Mais informações">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
                         <a href="register.html" class="btn-buy">Comprar</a>
                     </div>
                 </div>
@@ -399,6 +555,16 @@
         </div>
     </div>
 
+    <!-- Modal de Informações -->
+    <div id="infoModal" class="info-modal">
+        <div class="info-modal-content">
+            <i class="fas fa-times info-modal-close" onclick="closeInfo()"></i>
+            <div id="infoContent">
+                <!-- Conteúdo será injetado aqui -->
+            </div>
+        </div>
+    </div>
+
     <footer style="margin-top: 100px;">
         <div class="container text-center" style="padding: 60px 0; border-top: 1px solid var(--glass-border);">
             <p style="color: var(--gray);">&copy; 2026 QRchef. Transformando o setor gastronômico.</p>
@@ -406,6 +572,125 @@
     </footer>
 
     <script>
+        const planData = {
+            elite: {
+                tag: 'Premium',
+                title: 'ELITE GASTRONOMY',
+                description: 'Design minimalista e elegante para restaurantes de alta gastronomia que buscam exclusividade e uma experiência visual refinada.',
+                details: [
+                    'Design minimalista e luxuoso',
+                    'Foco em imagens de alta qualidade',
+                    'Navegação fluida e sofisticada',
+                    'Ideal para restaurantes Fine Dining',
+                    'Exclusividade em cada detalhe'
+                ],
+                price: '199,90'
+            },
+            quick: {
+                tag: 'Alta Performance',
+                title: 'QUICK BITE EXPRESS',
+                description: 'Focado em velocidade e conversão para hamburguerias e lanchonetes de alto giro que precisam de agilidade no atendimento.',
+                details: [
+                    'Interface focada em conversão',
+                    'Carregamento ultra-rápido',
+                    'Ideal para Fast Food e Lanchonetes',
+                    'Otimizado para pedidos rápidos',
+                    'Alta performance em dispositivos móveis'
+                ],
+                price: '149,90'
+            },
+            coffee: {
+                tag: 'Aconchegante',
+                title: 'COFFEE & CO',
+                description: 'Layout acolhedor para cafeterias, padarias e bistrôs que valorizam a experiência visual e o ambiente aconchegante.',
+                details: [
+                    'Estética acolhedora e visual',
+                    'Perfeito para Cafeterias e Bistrôs',
+                    'Exibição elegante de produtos',
+                    'Design que transmite conforto',
+                    'Sincronização com redes sociais'
+                ],
+                price: '129,90'
+            },
+            basic: {
+                tag: 'Essencial',
+                title: 'PLANO BÁSICO',
+                description: 'Para quem está começando e precisa de praticidade acima de tudo. O Plano Básico entrega um cardápio digital limpo, rápido de navegar e fácil de gerenciar — sem complicação. Ideal para pequenos negócios, lanchonetes e deliveries que querem marcar presença online com agilidade e baixo custo.',
+                details: [
+                    'Cardápio digital limpo e intuitivo',
+                    'Navegação ultra-rápida',
+                    'Painel de gerenciamento simplificado',
+                    'Ideal para pequenos negócios e deliveries',
+                    'Presença online com agilidade'
+                ],
+                price: '99,90'
+            },
+            pro: {
+                tag: 'Profissional',
+                title: 'PLANO PRO',
+                description: 'Para quem quer crescer com estrutura. O Plano Pro oferece categorias ilimitadas, busca avançada para facilitar a vida do cliente e um design moderno que transmite profissionalismo. Perfeito para restaurantes e negócios em expansão que buscam uma experiência completa, sem abrir mão da praticidade.',
+                details: [
+                    'Categorias de produtos ilimitadas',
+                    'Busca avançada de produtos',
+                    'Design moderno e profissional',
+                    'Experiência completa do cliente',
+                    'Suporte prioritário e ágil'
+                ],
+                price: '149,90'
+            },
+            premium: {
+                tag: 'Exclusivo',
+                title: 'PLANO PREMIUM',
+                description: 'Para quem exige o melhor. O Plano Premium combina tecnologia de ponta com identidade visual total da sua marca — animações fluidas, personalização completa e uma experiência que impressiona do primeiro ao último clique. Ideal para marcas consolidadas que querem se destacar e converter visitantes em clientes fiéis.',
+                details: [
+                    'Tecnologia de ponta e alta performance',
+                    'Identidade visual 100% personalizada',
+                    'Animações fluidas e interativas',
+                    'Personalização total da marca',
+                    'Conversão otimizada de visitantes'
+                ],
+                price: '199,90'
+            }
+        };
+
+        function openInfo(type) {
+            const data = planData[type];
+            if (!data) return;
+
+            const content = `
+                <span class="info-tag">${data.tag}</span>
+                <h2 class="info-title syne">${data.title}</h2>
+                <p class="info-description">${data.description}</p>
+                <div class="info-details">
+                    ${data.details.map(item => `
+                        <div class="info-detail-item">
+                            <i class="fas fa-check-circle"></i>
+                            <span>${item}</span>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="info-price-box">
+                    <span class="info-price-label">Investimento Mensal</span>
+                    <div class="info-price-value">R$ ${data.price} <span>/mês</span></div>
+                </div>
+            `;
+
+            document.getElementById('infoContent').innerHTML = content;
+            const modal = document.getElementById('infoModal');
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('active'), 10);
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeInfo() {
+            const modal = document.getElementById('infoModal');
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }, 400);
+        }
+
         function openDemo(type) {
             const screen = document.getElementById('mobileScreen');
             
@@ -451,8 +736,19 @@
         }
 
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeDemo();
+            if (e.key === 'Escape') {
+                closeDemo();
+                closeInfo();
+            }
         });
+
+        // Fechar ao clicar fora do modal de info
+        window.onclick = (event) => {
+            const modal = document.getElementById('infoModal');
+            if (event.target == modal) {
+                closeInfo();
+            }
+        };
     </script>
 </body>
 </html>

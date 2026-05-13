@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurações | QRchef</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #FF5C00;
+            --primary-glow: rgba(255, 92, 0, 0.4);
+            --black: #0D0D0D;
+            --dark-gray: #151515;
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+        body { background-color: var(--black); color: white; padding-top: 80px; }
+        .dashboard-header-top {
+            position: fixed; top: 0; left: 0; width: 100%; height: 80px;
+            background: rgba(13, 13, 13, 0.9); backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--glass-border); z-index: 1000; display: flex; align-items: center;
+        }
+        .header-inner { width: 100%; max-width: 1400px; margin: 0 auto; padding: 0 40px; display: flex; justify-content: space-between; align-items: center; }
+        .main-content { max-width: 800px; margin: 0 auto; padding: 40px; }
+        .setting-card { 
+            background: var(--dark-gray); border: 1px solid var(--glass-border); border-radius: 24px; 
+            padding: 25px 30px; display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 15px;
+        }
+        .setting-info h3 { font-size: 18px; font-weight: 800; margin-bottom: 5px; color: white; }
+        .setting-info p { color: var(--gray); font-size: 13px; }
+        
+        .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--primary); }
+        input:checked + .slider:before { transform: translateX(24px); }
+        
+        .logo { font-size: 28px; font-weight: 800; text-decoration: none; color: white; }
+        .logo span { color: var(--primary); }
+        .avatar-circle { width: 40px; height: 40px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; }
+    </style>
+</head>
+<body>
+    <header class="dashboard-header-top">
+        <div class="header-inner">
+            <a href="dashboard.html" class="logo">QR<span>chef</span></a>
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <a href="admin-systems-showcase.html" style="color:var(--gray); text-decoration:none; font-size:14px; font-weight:700; transition: 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--gray)'">
+                    <i class="fas fa-arrow-left"></i> Voltar
+                </a>
+                <div class="avatar-circle">P</div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <h1 class="syne" style="font-size: 32px; margin-bottom: 40px;">Configurações</h1>
+        <div class="settings-grid">
+            <div class="setting-card">
+                <div class="setting-info">
+                    <h3>Notificações por E-mail</h3>
+                    <p>Receba alertas sobre novos pedidos e relatórios.</p>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="setting-card">
+                <div class="setting-info">
+                    <h3>Modo Escuro Automático</h3>
+                    <p>Alterna o tema baseado nas configurações do sistema.</p>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="setting-card">
+                <div class="setting-info">
+                    <h3>Sincronização com Redes Sociais</h3>
+                    <p>Publica automaticamente novidades em suas redes.</p>
+                </div>
+                <label class="switch">
+                    <input type="checkbox">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const userStr = localStorage.getItem('qrchef_user');
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                document.querySelector('.avatar-circle').textContent = user.name.charAt(0).toUpperCase();
+            }
+        });
+    </script>
+</body>
+</html>

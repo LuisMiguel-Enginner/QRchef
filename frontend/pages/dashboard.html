@@ -330,6 +330,140 @@
             box-shadow: 0 0 10px rgba(255, 71, 87, 0.5);
         }
 
+        /* Side Drawer Menu */
+        .side-drawer {
+            position: fixed;
+            top: 0;
+            right: -320px;
+            width: 320px;
+            height: 100%;
+            background: #0d0d0d;
+            border-left: 1px solid var(--glass-border);
+            z-index: 2000;
+            transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            display: flex;
+            flex-direction: column;
+            padding: 40px 30px;
+            box-shadow: -20px 0 50px rgba(0,0,0,0.5);
+        }
+
+        .side-drawer.active {
+            transform: translateX(-320px);
+        }
+
+        .drawer-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1999;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .drawer-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        .drawer-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .drawer-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), #ff8c00);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 15px;
+            box-shadow: 0 10px 20px rgba(255, 71, 87, 0.2);
+        }
+
+        .drawer-user-name {
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .drawer-user-email {
+            font-size: 13px;
+            color: var(--gray);
+        }
+
+        .drawer-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .drawer-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 20px;
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 700;
+            border-radius: 12px;
+            transition: 0.3s;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid transparent;
+        }
+
+        .drawer-item:hover {
+            background: rgba(255, 255, 255, 0.07);
+            border-color: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+            color: var(--primary);
+        }
+
+        .drawer-item i {
+            width: 20px;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        .drawer-footer {
+            margin-top: auto;
+            padding-top: 30px;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .btn-drawer-logout {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255, 71, 87, 0.1);
+            color: #ff4757;
+            border: 1px solid rgba(255, 71, 87, 0.2);
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-drawer-logout:hover {
+            background: #ff4757;
+            color: white;
+            transform: translateY(-2px);
+        }
+
         /* Accessibility: Focus States */
         button:focus, a:focus {
             outline: 2px solid var(--primary);
@@ -371,13 +505,46 @@
                     <span class="user-name" id="userNameDisplay">Carregando...</span>
                     <span class="user-email" id="userEmailDisplay">...</span>
                 </div>
-                <div class="avatar-circle" id="userAvatar">U</div>
-                <button id="logoutBtn" class="btn-logout" title="Sair do Sistema" aria-label="Sair">
-                    <i class="fas fa-power-off"></i>
-                </button>
+                <div class="avatar-circle" id="userAvatar" onclick="toggleDrawer()">U</div>
             </div>
         </div>
     </header>
+
+    <!-- Side Drawer Menu -->
+    <div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer()"></div>
+    <div class="side-drawer" id="sideDrawer">
+        <div class="drawer-header">
+            <div class="drawer-avatar" id="drawerAvatar">U</div>
+            <span class="drawer-user-name" id="drawerUserName">Carregando...</span>
+            <span class="drawer-user-email" id="drawerUserEmail">...</span>
+        </div>
+
+        <nav class="drawer-menu">
+            <a href="profile.html" class="drawer-item">
+                <i class="fas fa-user-circle"></i>
+                Meu Perfil
+            </a>
+            <a href="user-systems.html" class="drawer-item">
+                <i class="fas fa-th-large"></i>
+                Meus Sistemas
+            </a>
+            <a href="user-plans.html" class="drawer-item">
+                <i class="fas fa-credit-card"></i>
+                Meus Planos
+            </a>
+            <a href="settings.html" class="drawer-item">
+                <i class="fas fa-cog"></i>
+                Configurações
+            </a>
+        </nav>
+
+        <div class="drawer-footer">
+            <button class="btn-drawer-logout" onclick="AuthService.logout()">
+                <i class="fas fa-power-off"></i>
+                Sair da Conta
+            </button>
+        </div>
+    </div>
 
     <main class="main-content">
         <!-- SEÇÃO: INÍCIO (CLIENTE) -->
@@ -672,6 +839,19 @@
 
     <script src="../js/auth.js"></script>
     <script>
+        function toggleDrawer() {
+            const drawer = document.getElementById('sideDrawer');
+            const overlay = document.getElementById('drawerOverlay');
+            drawer.classList.toggle('active');
+            overlay.classList.toggle('active');
+            
+            if (drawer.classList.contains('active')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             const token = localStorage.getItem('qrchef_token');
             const userStr = localStorage.getItem('qrchef_user');
@@ -696,9 +876,17 @@
                 if (avatarEl) {
                     avatarEl.textContent = user.name.charAt(0).toUpperCase();
                 }
+
+                // Drawer Info
+                const dUserName = document.getElementById('drawerUserName');
+                const dUserEmail = document.getElementById('drawerUserEmail');
+                const dAvatar = document.getElementById('drawerAvatar');
+                if (dUserName) dUserName.textContent = user.name;
+                if (dUserEmail) dUserEmail.textContent = user.email;
+                if (dAvatar) dAvatar.textContent = user.name.charAt(0).toUpperCase();
                 
                 // Verificação Admin
-                const isAdmin = user.email === 'admin@sistema.com' || user.email === 'adminsistema@sistema.com';
+                const isAdmin = user.email === 'adminsistema@sistema.com' || user.email === 'adminsistema2@sistema.com';
                 if (isAdmin) {
                     document.body.classList.add('is-admin');
                     showSection('admin-home');

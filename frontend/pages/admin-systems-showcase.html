@@ -254,7 +254,7 @@
 
         .actions-group {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 48px 1fr 1fr;
             gap: 10px;
         }
 
@@ -272,6 +272,25 @@
             gap: 8px;
         }
 
+        .btn-info {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--primary);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 16px;
+        }
+
+        .btn-info:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
         .btn-demo {
             background: rgba(255, 255, 255, 0.05);
             color: white;
@@ -281,6 +300,144 @@
         .btn-demo:hover {
             background: rgba(255, 255, 255, 0.1);
             border-color: white;
+        }
+
+        /* Plan Modal */
+        .plan-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .plan-modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #111;
+            border: 1px solid var(--glass-border);
+            border-radius: 32px;
+            max-width: 500px;
+            width: 100%;
+            padding: 40px;
+            position: relative;
+            animation: modalFadeIn 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            background: rgba(255, 255, 255, 0.05);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 51, 51, 0.2);
+            color: #ff4757;
+        }
+
+        .modal-header {
+            margin-bottom: 30px;
+        }
+
+        .modal-plan-tag {
+            background: var(--primary);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 100px;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+
+        .modal-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 10px;
+        }
+
+        .modal-description {
+            color: var(--gray);
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .modal-details {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            color: #eee;
+            font-size: 14px;
+        }
+
+        .detail-item i {
+            color: var(--primary);
+            margin-top: 4px;
+        }
+
+        .modal-price-box {
+            margin-top: 40px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            text-align: center;
+        }
+
+        .modal-price-label {
+            color: var(--gray);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .modal-price-value {
+            font-size: 32px;
+            font-weight: 800;
+            color: white;
+        }
+
+        .modal-price-value span {
+            font-size: 14px;
+            color: var(--gray);
+            font-weight: 400;
         }
 
         .btn-deploy {
@@ -300,8 +457,159 @@
         .user-meta { text-align: right; line-height: 1.2; }
         .user-name { display: block; font-size: 13px; font-weight: 800; }
         .user-email { display: block; font-size: 11px; color: var(--gray); }
-        .avatar-circle { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), #ff8c00); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; }
-        .btn-logout { background: rgba(255, 51, 51, 0.1); border: 1px solid rgba(255, 51, 51, 0.2); color: #ff4757; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; }
+        .avatar-circle { 
+            width: 40px; 
+            height: 40px; 
+            border-radius: 50%; 
+            background: linear-gradient(135deg, var(--primary), #ff8c00); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-weight: 800; 
+            color: white; 
+            cursor: pointer; 
+            transition: 0.3s;
+            border: 2px solid transparent;
+        }
+        .avatar-circle:hover {
+            transform: scale(1.05);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        /* Side Drawer Menu */
+        .side-drawer {
+            position: fixed;
+            top: 0;
+            right: -320px;
+            width: 320px;
+            height: 100%;
+            background: #0d0d0d;
+            border-left: 1px solid var(--glass-border);
+            z-index: 2000;
+            transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            display: flex;
+            flex-direction: column;
+            padding: 40px 30px;
+            box-shadow: -20px 0 50px rgba(0,0,0,0.5);
+        }
+
+        .side-drawer.active {
+            transform: translateX(-320px);
+        }
+
+        .drawer-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1999;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .drawer-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        .drawer-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .drawer-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), #ff8c00);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 15px;
+            box-shadow: 0 10px 20px rgba(255, 71, 87, 0.2);
+        }
+
+        .drawer-user-name {
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .drawer-user-email {
+            font-size: 13px;
+            color: var(--gray);
+        }
+
+        .drawer-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .drawer-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 20px;
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 700;
+            border-radius: 12px;
+            transition: 0.3s;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid transparent;
+        }
+
+        .drawer-item:hover {
+            background: rgba(255, 255, 255, 0.07);
+            border-color: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+            color: var(--primary);
+        }
+
+        .drawer-item i {
+            width: 20px;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        .drawer-footer {
+            margin-top: auto;
+            padding-top: 30px;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .btn-drawer-logout {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255, 71, 87, 0.1);
+            color: #ff4757;
+            border: 1px solid rgba(255, 71, 87, 0.2);
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-drawer-logout:hover {
+            background: #ff4757;
+            color: white;
+            transform: translateY(-2px);
+        }
 
         /* Role based visibility */
         .admin-only { display: none; }
@@ -361,11 +669,46 @@
                     <span class="user-name">Admin Sistema</span>
                     <span class="user-email">adminsistema@sistema.com</span>
                 </div>
-                <div class="avatar-circle">A</div>
-                <button id="logoutBtn" class="btn-logout" title="Sair"><i class="fas fa-power-off"></i></button>
+                <div class="avatar-circle" onclick="toggleDrawer()">A</div>
             </div>
         </div>
     </header>
+
+    <!-- Side Drawer Menu -->
+    <div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer()"></div>
+    <div class="side-drawer" id="sideDrawer">
+        <div class="drawer-header">
+            <div class="drawer-avatar">A</div>
+            <span class="drawer-user-name user-name">Admin Sistema</span>
+            <span class="drawer-user-email user-email">adminsistema@sistema.com</span>
+        </div>
+
+        <nav class="drawer-menu">
+            <a href="profile.html" class="drawer-item">
+                <i class="fas fa-user-circle"></i>
+                Meu Perfil
+            </a>
+            <a href="user-systems.html" class="drawer-item">
+                <i class="fas fa-th-large"></i>
+                Meus Sistemas
+            </a>
+            <a href="user-plans.html" class="drawer-item">
+                <i class="fas fa-credit-card"></i>
+                Meus Planos
+            </a>
+            <a href="settings.html" class="drawer-item">
+                <i class="fas fa-cog"></i>
+                Configurações
+            </a>
+        </nav>
+
+        <div class="drawer-footer">
+            <button class="btn-drawer-logout" onclick="AuthService.logout()">
+                <i class="fas fa-power-off"></i>
+                Sair da Conta
+            </button>
+        </div>
+    </div>
 
     <main class="main-content">
         <div class="page-header">
@@ -416,8 +759,11 @@
                             <div class="system-price">R$ 149,90 <span>/instalação</span></div>
                         </div>
                         <div class="actions-group">
+                            <button class="btn-info" onclick="openPlanInfo('premium')" title="Mais informações">
+                                <i class="fas fa-info-circle"></i>
+                            </button>
                             <a href="menu-elite.html" target="_blank" class="btn-action btn-demo">
-                                <i class="fas fa-eye"></i> Ver Demo
+                                <i class="fas fa-eye"></i> Demo
                             </a>
                             <a href="admin-deploy.html?template=elite" class="btn-action btn-deploy">
                                 <i class="fas fa-rocket"></i> Implantar
@@ -468,8 +814,11 @@
                             <div class="system-price">R$ 99,90 <span>/instalação</span></div>
                         </div>
                         <div class="actions-group">
+                            <button class="btn-info" onclick="openPlanInfo('basic')" title="Mais informações">
+                                <i class="fas fa-info-circle"></i>
+                            </button>
                             <a href="menu-quick.html" target="_blank" class="btn-action btn-demo">
-                                <i class="fas fa-eye"></i> Ver Demo
+                                <i class="fas fa-eye"></i> Demo
                             </a>
                             <a href="admin-deploy.html?template=quick" class="btn-action btn-deploy">
                                 <i class="fas fa-rocket"></i> Implantar
@@ -520,8 +869,11 @@
                             <div class="system-price">R$ 119,90 <span>/instalação</span></div>
                         </div>
                         <div class="actions-group">
+                            <button class="btn-info" onclick="openPlanInfo('pro')" title="Mais informações">
+                                <i class="fas fa-info-circle"></i>
+                            </button>
                             <a href="menu-coffee.html" target="_blank" class="btn-action btn-demo">
-                                <i class="fas fa-eye"></i> Ver Demo
+                                <i class="fas fa-eye"></i> Demo
                             </a>
                             <a href="admin-deploy.html?template=coffee" class="btn-action btn-deploy">
                                 <i class="fas fa-rocket"></i> Implantar
@@ -573,8 +925,11 @@
                             <div class="system-price">R$ 159,90 <span>/instalação</span></div>
                         </div>
                         <div class="actions-group">
+                            <button class="btn-info" onclick="openPlanInfo('premium')" title="Mais informações">
+                                <i class="fas fa-info-circle"></i>
+                            </button>
                             <a href="menu-premium.html" target="_blank" class="btn-action btn-demo">
-                                <i class="fas fa-eye"></i> Ver Demo
+                                <i class="fas fa-eye"></i> Demo
                             </a>
                             <a href="admin-deploy.html?template=premium" class="btn-action btn-deploy">
                                 <i class="fas fa-rocket"></i> Implantar
@@ -625,8 +980,11 @@
                             <div class="system-price">R$ 89,90 <span>/instalação</span></div>
                         </div>
                         <div class="actions-group">
+                            <button class="btn-info" onclick="openPlanInfo('basic')" title="Mais informações">
+                                <i class="fas fa-info-circle"></i>
+                            </button>
                             <a href="menu-basic.html" target="_blank" class="btn-action btn-demo">
-                                <i class="fas fa-eye"></i> Ver Demo
+                                <i class="fas fa-eye"></i> Demo
                             </a>
                             <a href="admin-deploy.html?template=basic" class="btn-action btn-deploy">
                                 <i class="fas fa-rocket"></i> Implantar
@@ -677,8 +1035,11 @@
                             <div class="system-price">R$ 109,90 <span>/instalação</span></div>
                         </div>
                         <div class="actions-group">
+                            <button class="btn-info" onclick="openPlanInfo('pro')" title="Mais informações">
+                                <i class="fas fa-info-circle"></i>
+                            </button>
                             <a href="menu-pro.html" target="_blank" class="btn-action btn-demo">
-                                <i class="fas fa-eye"></i> Ver Demo
+                                <i class="fas fa-eye"></i> Demo
                             </a>
                             <a href="admin-deploy.html?template=pro" class="btn-action btn-deploy">
                                 <i class="fas fa-rocket"></i> Implantar
@@ -690,8 +1051,251 @@
         </div>
     </main>
 
+    <!-- Modal de Informações do Plano -->
+    <div id="planModal" class="plan-modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closePlanModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="modal-header">
+                <span id="modalPlanTag" class="modal-plan-tag">Essencial</span>
+                <h2 id="modalTitle" class="modal-title syne">Plano Básico</h2>
+                <p id="modalDescription" class="modal-description">Descrição do plano...</p>
+            </div>
+            <div id="modalDetails" class="modal-details">
+                <!-- Detalhes inseridos via JS -->
+            </div>
+            <div class="modal-price-box">
+                <span class="modal-price-label">Investimento Mensal</span>
+                <div class="modal-price-value"><span id="modalPrice">R$ 99,90</span> <span>/mês</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Criar Restaurante --> 
+    <div id="modalCriar" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); backdrop-filter:blur(10px); z-index:3000; justify-content:center; align-items:center; padding:20px;"> 
+        <div style="background:#111; border:1px solid rgba(255,255,255,0.1); border-radius:32px; max-width:480px; width:100%; padding:40px; position:relative; animation: modalFadeIn 0.4s ease;"> 
+            <button onclick="fecharModalCriar()" style="position:absolute; top:20px; right:20px; background:rgba(255,255,255,0.05); border:none; color:white; width:36px; height:36px; border-radius:50%; cursor:pointer; font-size:16px;">✕</button> 
+            
+            <h2 style="font-size:24px; font-weight:800; margin-bottom:8px;">Criar seu Cardápio</h2> 
+            <p style="color:#888; font-size:14px; margin-bottom:30px;">Seu restaurante vai estar online em segundos.</p> 
+    
+            <div style="display:flex; flex-direction:column; gap:16px;"> 
+                <div> 
+                    <label style="font-size:12px; color:#888; font-weight:700; text-transform:uppercase; letter-spacing:1px;">Nome do Restaurante</label> 
+                    <input id="inputNome" type="text" placeholder="Ex: Pizzaria do João" style="width:100%; margin-top:8px; padding:14px 16px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; color:white; font-size:15px; outline:none; box-sizing:border-box;"> 
+                </div> 
+                <div> 
+                    <label style="font-size:12px; color:#888; font-weight:700; text-transform:uppercase; letter-spacing:1px;">Cor Principal</label> 
+                    <div style="display:flex; align-items:center; gap:12px; margin-top:8px;"> 
+                        <input id="inputCor" type="color" value="#e63946" style="width:48px; height:48px; border:none; border-radius:10px; cursor:pointer; background:none;"> 
+                        <span style="color:#888; font-size:13px;">Cor do header e destaques do cardápio</span> 
+                    </div> 
+                </div> 
+            </div> 
+    
+            <div id="msgCriar" style="margin-top:16px; font-size:13px; display:none;"></div> 
+    
+            <button onclick="criarRestaurante()" id="btnCriar" style="width:100%; margin-top:24px; padding:16px; background:var(--primary); color:white; border:none; border-radius:14px; font-size:15px; font-weight:800; cursor:pointer; transition:0.3s;"> 
+                <i class="fas fa-rocket"></i> Criar e Ativar Cardápio 
+            </button> 
+    
+            <!-- Resultado após criação --> 
+            <div id="resultadoCriar" style="display:none; margin-top:24px; padding:20px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:16px; text-align:center;"> 
+                <p style="color:#4CAF50; font-weight:800; margin-bottom:12px;"><i class="fas fa-check-circle"></i> Cardápio criado com sucesso!</p> 
+                <p style="color:#888; font-size:13px; margin-bottom:16px;">Link do seu cardápio:</p> 
+                <a id="linkCardapio" href="#" target="_blank" style="color:var(--primary); font-weight:700; word-break:break-all; font-size:14px;"></a> 
+                <div style="margin-top:20px; display:flex; gap:10px; justify-content:center;"> 
+                    <button onclick="copiarLink()" style="padding:10px 20px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:white; border-radius:10px; cursor:pointer; font-size:13px; font-weight:700;"> 
+                        <i class="fas fa-copy"></i> Copiar Link 
+                    </button> 
+                    <button onclick="irParaCardapio()" style="padding:10px 20px; background:var(--primary); border:none; color:white; border-radius:10px; cursor:pointer; font-size:13px; font-weight:700;"> 
+                        <i class="fas fa-pen"></i> Editar Cardápio 
+                    </button> 
+                </div> 
+            </div> 
+        </div> 
+    </div>
+
     <script src="../js/auth.js"></script>
     <script>
+        const API = 'https://qrchef-worker.luismiguelgomesoliveira-014.workers.dev'; 
+        let linkGerado = ''; 
+        let slugGerado = '';
+        
+        function abrirModalCriarRestaurante(template) { 
+            const modal = document.getElementById('modalCriar'); 
+            modal.style.display = 'flex'; 
+            document.body.style.overflow = 'hidden'; 
+            // Limpa estado anterior 
+            document.getElementById('resultadoCriar').style.display = 'none'; 
+            document.getElementById('msgCriar').style.display = 'none'; 
+            document.getElementById('inputNome').value = ''; 
+            document.getElementById('btnCriar').style.display = 'block'; 
+        } 
+        
+        function fecharModalCriar() { 
+            document.getElementById('modalCriar').style.display = 'none'; 
+            document.body.style.overflow = ''; 
+        } 
+        
+        async function criarRestaurante() { 
+            const nome = document.getElementById('inputNome').value.trim(); 
+            const cor = document.getElementById('inputCor').value; 
+            const msg = document.getElementById('msgCriar'); 
+        
+            if (!nome) { 
+                msg.style.display = 'block'; 
+                msg.style.color = '#ff4757'; 
+                msg.textContent = 'Digite o nome do restaurante.'; 
+                return; 
+            } 
+        
+            const userStr = localStorage.getItem('qrchef_user'); 
+            const token = localStorage.getItem('qrchef_token'); 
+            if (!userStr || !token) { 
+                window.location.href = 'login.html'; 
+                return; 
+            } 
+        
+            const btn = document.getElementById('btnCriar'); 
+            btn.textContent = 'Criando...'; 
+            btn.disabled = true; 
+        
+            try { 
+                const res = await fetch(`${API}/restaurant/create`, { 
+                    method: 'POST', 
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'Authorization': `Bearer ${token}` 
+                    }, 
+                    body: JSON.stringify({ nome, cor_primaria: cor }) 
+                }); 
+        
+                const data = await res.json(); 
+        
+                if (data.success) { 
+                    linkGerado = data.link; 
+                    slugGerado = data.slug;
+                    document.getElementById('linkCardapio').href = linkGerado; 
+                    document.getElementById('linkCardapio').textContent = linkGerado; 
+                    document.getElementById('resultadoCriar').style.display = 'block'; 
+                    btn.style.display = 'none'; 
+                    msg.style.display = 'none'; 
+                } else { 
+                    msg.style.display = 'block'; 
+                    msg.style.color = '#ff4757'; 
+                    msg.textContent = data.message || 'Erro ao criar restaurante.'; 
+                    btn.textContent = 'Criar e Ativar Cardápio'; 
+                    btn.disabled = false; 
+                } 
+            } catch (e) { 
+                msg.style.display = 'block'; 
+                msg.style.color = '#ff4757'; 
+                msg.textContent = 'Erro de conexão com o servidor.'; 
+                btn.textContent = 'Criar e Ativar Cardápio'; 
+                btn.disabled = false; 
+            } 
+        } 
+        
+        function copiarLink() { 
+            navigator.clipboard.writeText(linkGerado); 
+            alert('Link copiado!'); 
+        } 
+        
+        function irParaCardapio() { 
+            // Redireciona para a nova tela de edição com o slug do restaurante
+            window.location.href = `admin-edit-menu.html?slug=${slugGerado}`; 
+        } 
+        const planDetails = {
+            basic: {
+                tag: 'Essencial',
+                title: 'Plano Básico',
+                description: 'Para quem está começando e precisa de praticidade acima de tudo. O Plano Básico entrega um cardápio digital limpo, rápido de navegar e fácil de gerenciar — sem complicação.',
+                details: [
+                    'Cardápio digital limpo e intuitivo',
+                    'Navegação ultra-rápida',
+                    'Painel de gerenciamento simplificado',
+                    'Ideal para pequenos negócios e deliveries',
+                    'Presença online com baixo custo'
+                ],
+                price: '99,90'
+            },
+            pro: {
+                tag: 'Profissional',
+                title: 'Plano Pro',
+                description: 'Para quem quer crescer com estrutura. O Plano Pro oferece categorias ilimitadas, busca avançada para facilitar a vida do cliente e um design moderno que transmite profissionalismo.',
+                details: [
+                    'Categorias de produtos ilimitadas',
+                    'Busca avançada de produtos',
+                    'Design moderno e profissional',
+                    'Experiência completa do cliente',
+                    'Suporte prioritário'
+                ],
+                price: '149,90'
+            },
+            premium: {
+                tag: 'Exclusivo',
+                title: 'Plano Premium',
+                description: 'Para quem exige o melhor. O Plano Premium combina tecnologia de ponta com identidade visual total da sua marca — animações fluidas, personalização completa e uma experiência que impressiona.',
+                details: [
+                    'Tecnologia de ponta e alta performance',
+                    'Identidade visual 100% personalizada',
+                    'Animações fluidas e interativas',
+                    'Personalização total da experiência',
+                    'Conversão otimizada de visitantes'
+                ],
+                price: '199,90'
+            }
+        };
+
+        function openPlanInfo(type) {
+            const plan = planDetails[type];
+            if (!plan) return;
+
+            document.getElementById('modalPlanTag').textContent = plan.tag;
+            document.getElementById('modalTitle').textContent = plan.title;
+            document.getElementById('modalDescription').textContent = plan.description;
+            document.getElementById('modalPrice').textContent = `R$ ${plan.price}`;
+            
+            const detailsList = document.getElementById('modalDetails');
+            detailsList.innerHTML = plan.details.map(detail => `
+                <div class="detail-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>${detail}</span>
+                </div>
+            `).join('');
+
+            document.getElementById('planModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePlanModal() {
+            document.getElementById('planModal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Close modal on click outside
+        window.onclick = (event) => {
+            const modal = document.getElementById('planModal');
+            if (event.target == modal) {
+                closePlanModal();
+            }
+        };
+
+        function toggleDrawer() {
+            const drawer = document.getElementById('sideDrawer');
+            const overlay = document.getElementById('drawerOverlay');
+            drawer.classList.toggle('active');
+            overlay.classList.toggle('active');
+            
+            if (drawer.classList.contains('active')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             const userStr = localStorage.getItem('qrchef_user');
             if (userStr) {
@@ -699,6 +1303,7 @@
                 document.querySelectorAll('.user-name').forEach(el => el.textContent = user.name);
                 document.querySelectorAll('.user-email').forEach(el => el.textContent = user.email);
                 document.querySelectorAll('.avatar-circle').forEach(el => el.textContent = user.name.charAt(0).toUpperCase());
+                document.querySelectorAll('.drawer-avatar').forEach(el => el.textContent = user.name.charAt(0).toUpperCase());
                 
                 // Admin logic
                 if (user.email === 'adminsistema@sistema.com' || user.email === 'adminsistema2@sistema.com') {
@@ -710,7 +1315,8 @@
                         btn.href = '#'; // In a real app, this would lead to a checkout or contact
                         btn.onclick = (e) => {
                             e.preventDefault();
-                            alert('Este sistema estará disponível para compra em breve! Entre em contato com o suporte para mais informações.');
+                            const template = btn.closest('a')?.href?.split('template=')[1] || 'basico'; 
+                            abrirModalCriarRestaurante(template); 
                         };
                     });
                 }
@@ -719,7 +1325,7 @@
             }
         });
 
-        document.getElementById('logoutBtn')?.addEventListener('click', () => AuthService.logout());
+        // document.getElementById('logoutBtn')?.addEventListener('click', () => AuthService.logout());
     </script>
 </body>
 </html>
