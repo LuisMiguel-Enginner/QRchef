@@ -78,7 +78,7 @@ h1, h2, h3, h4, .syne {
 }
 
 /* --- Navigation Fixes --- */
-nav {
+.main-nav {
     background: rgba(13, 13, 13, 0.85);
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
@@ -90,7 +90,7 @@ nav {
     border-bottom: 1px solid var(--glass-border);
 }
 
-.nav-content {
+.main-nav-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -463,16 +463,30 @@ nav {
 }
 
 .plan-price {
-    font-size: 64px;
+    font-size: 84px; /* Aumentado para dar o impacto da imagem */
     font-weight: 800;
-    margin: 32px 0;
-    letter-spacing: -2px;
+    margin: 24px 0;
+    letter-spacing: -4px;
+    color: var(--white);
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 8px;
 }
 
 .plan-price span {
+    font-size: 20px;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 600;
+    letter-spacing: -0.5px;
+}
+
+.plan-name {
     font-size: 18px;
-    color: var(--gray);
-    font-weight: 500;
+    font-weight: 700;
+    text-transform: none;
+    letter-spacing: 0;
+    margin-bottom: 8px;
 }
 
 .plan-features {

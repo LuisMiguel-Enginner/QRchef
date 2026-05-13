@@ -19,18 +19,134 @@
         body {
             background-color: var(--black);
             color: white;
-            padding-top: 80px;
+            padding-top: 85px;
+            font-family: 'DM Sans', sans-serif;
+            margin: 0;
         }
 
+        /* --- HEADER CONSISTENTE COM DASHBOARD --- */
         .dashboard-header-top {
-            position: fixed; top: 0; left: 0; width: 100%; height: 80px;
-            background: rgba(13, 13, 13, 0.9); backdrop-filter: blur(15px);
-            border-bottom: 1px solid var(--glass-border); z-index: 1000; display: flex; align-items: center;
+            background: #0d0d0d;
+            border-bottom: 1px solid var(--glass-border);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 85px;
+            z-index: 1100;
+            display: flex;
+            align-items: center;
         }
 
-        .header-inner { width: 100%; max-width: 1400px; margin: 0 auto; padding: 0 40px; display: flex; justify-content: space-between; align-items: center; }
+        .header-inner {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 100%;
+        }
 
-        .main-content { max-width: 1200px; margin: 0 auto; padding: 40px; }
+        .header-inner .logo {
+            font-size: 24px;
+            font-weight: 800;
+            text-decoration: none;
+            color: white;
+            min-width: 150px;
+            flex-shrink: 0;
+        }
+        .header-inner .logo span { color: var(--primary); }
+
+        .header-nav-center {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            padding: 0 20px;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--gray);
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            transition: all 0.3s ease;
+            padding: 8px 12px;
+            white-space: nowrap;
+            position: relative;
+            display: inline-block;
+            border-radius: 8px;
+        }
+
+        .nav-link:hover { 
+            color: white;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .nav-link.active { color: var(--primary); }
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0px;
+            left: 12px;
+            right: 12px;
+            height: 2px;
+            background: var(--primary);
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        .header-profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-shrink: 0;
+            min-width: fit-content;
+            padding-left: 20px;
+            border-left: 1px solid var(--glass-border);
+        }
+
+        .user-meta {
+            text-align: right;
+            line-height: 1.2;
+        }
+
+        .user-name { 
+            display: block;
+            font-size: 13px; 
+            font-weight: 800; 
+            color: white; 
+        }
+        .user-email { 
+            display: block;
+            font-size: 11px; 
+            color: var(--gray); 
+        }
+
+        .avatar-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), #ff8c00);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            color: white;
+            font-size: 14px;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        .main-content { max-width: 1400px; margin: 0 auto; padding: 40px 40px 100px; }
 
         /* Stats Row */
         .stats-grid {
@@ -226,11 +342,23 @@
     <header class="dashboard-header-top">
         <div class="header-inner">
             <a href="dashboard.html" class="logo">QR<span>chef</span></a>
-            <div style="display: flex; align-items: center; gap: 20px;">
-                <a href="admin-systems-showcase.html" style="color:var(--gray); text-decoration:none; font-size:14px; font-weight:700; transition: 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--gray)'">
-                    <i class="fas fa-arrow-left"></i> Voltar
-                </a>
-                <div class="avatar-circle" id="userAvatar">P</div>
+            
+            <div class="header-nav-center">
+                <nav class="nav-menu">
+                    <a href="dashboard.html" class="nav-link">Início</a>
+                    <a href="user-systems.html" class="nav-link active">Sistemas</a>
+                    <a href="#" class="nav-link">Serviços</a>
+                    <a href="user-plans.html" class="nav-link">Planos</a>
+                    <a href="#" class="nav-link">Suporte</a>
+                </nav>
+            </div>
+
+            <div class="header-profile">
+                <div class="user-meta">
+                    <span class="user-name" id="userNameDisplay">Carregando...</span>
+                    <span class="user-email" id="userEmailDisplay">email@sistema.com</span>
+                </div>
+                <div class="avatar-circle" id="userAvatar" onclick="window.location.href='profile.html'">P</div>
             </div>
         </div>
     </header>
@@ -302,6 +430,8 @@
             if (userStr) {
                 const user = JSON.parse(userStr);
                 document.getElementById('userAvatar').textContent = user.name.charAt(0).toUpperCase();
+                document.getElementById('userNameDisplay').textContent = user.name;
+                document.getElementById('userEmailDisplay').textContent = user.email;
             }
 
             try {
