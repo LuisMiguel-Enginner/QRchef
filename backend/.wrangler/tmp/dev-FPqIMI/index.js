@@ -2409,10 +2409,18 @@ app.post("/restaurant/:slug/items", async (c) => {
   const { nome, descricao, preco, categoria, foto_url } = await c.req.json();
   const { DB } = c.env;
   const user = await DB.prepare("SELECT id FROM users WHERE email = ?").bind(email).first();
+  if (!user) return c.json({ success: false, message: "Usu\xE1rio n\xE3o encontrado." }, 404);
   const restaurant = await DB.prepare(
     "SELECT * FROM restaurants WHERE slug = ? AND user_id = ?"
   ).bind(slug, user.id).first();
   if (!restaurant) return c.json({ success: false, message: "Restaurante n\xE3o encontrado." }, 404);
+  const plan = "pro";
+  if (plan === "basic") {
+    const { count } = await DB.prepare("SELECT COUNT(*) as count FROM menu_items WHERE restaurant_id = ?").bind(restaurant.id).first();
+    if (count >= 20) {
+      return c.json({ success: false, message: "Limite de 20 itens atingido no Plano B\xE1sico. Fa\xE7a upgrade para o Plano Pro!" }, 403);
+    }
+  }
   await DB.prepare(
     "INSERT INTO menu_items (restaurant_id, categoria, nome, descricao, preco, foto_url) VALUES (?, ?, ?, ?, ?, ?)"
   ).bind(restaurant.id, categoria, nome, descricao, preco, foto_url || null).run();
@@ -2437,8 +2445,16 @@ app.get("/cardapio/:slug", async (c) => {
   }
   const categoriasArray = Object.keys(categorias);
   const cor = restaurant.cor_primaria || "#ff4757";
+  const plan = "pro";
+  const config = {
+    hasSearch: plan !== "basic",
+    hasWhatsApp: plan !== "basic",
+    hasAnimations: plan === "premium",
+    maxItems: plan === "basic" ? 20 : Infinity
+  };
   const menuDataJS = ` 
     const menuData = { 
+      planConfig: ${JSON.stringify(config)},
       categories: ${JSON.stringify(categoriasArray)}, 
       items: ${JSON.stringify(items.map((i) => ({
     category: i.categoria,

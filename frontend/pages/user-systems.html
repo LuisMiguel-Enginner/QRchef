@@ -205,17 +205,21 @@
         .btn-action:hover { filter: brightness(1.1); }
         .btn-view:hover { border-color: white; }
 
+        /* Modal QR Code */
+        .qr-modal {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(10px); z-index: 2000; justify-content: center; align-items: center; padding: 20px;
+        }
+        .qr-modal.active { display: flex; }
+        .qr-content {
+            background: var(--dark-gray); border: 1px solid var(--glass-border); border-radius: 32px;
+            padding: 40px; text-align: center; max-width: 400px; width: 100%;
+        }
+        #qrImage { width: 250px; height: 250px; background: white; margin: 20px auto; padding: 10px; border-radius: 15px; }
+
         .logo { font-size: 28px; font-weight: 800; text-decoration: none; color: white; }
         .logo span { color: var(--primary); }
-        .avatar-circle { width: 40px; height: 40px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; }
-
-        @media (max-width: 1100px) {
-            .system-card { grid-template-columns: 1fr; text-align: center; }
-            .system-preview { margin: 0 auto; }
-            .system-tags { justify-content: center; }
-            .system-details-grid { grid-template-columns: 1fr; gap: 10px; }
-            .system-actions { flex-direction: row; justify-content: center; }
-        }
+        .avatar-circle { width: 40px; height: 40px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -224,9 +228,9 @@
             <a href="dashboard.html" class="logo">QR<span>chef</span></a>
             <div style="display: flex; align-items: center; gap: 20px;">
                 <a href="admin-systems-showcase.html" style="color:var(--gray); text-decoration:none; font-size:14px; font-weight:700; transition: 0.3s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--gray)'">
-                    <i class="fas fa-arrow-left"></i> Voltar ao Painel
+                    <i class="fas fa-arrow-left"></i> Voltar
                 </a>
-                <div class="avatar-circle">P</div>
+                <div class="avatar-circle" id="userAvatar">P</div>
             </div>
         </div>
     </header>
@@ -243,88 +247,179 @@
         <div class="stats-grid">
             <div class="stat-card">
                 <span class="stat-label">Sistemas Ativos</span>
-                <span class="stat-value">01</span>
+                <span class="stat-value" id="statActive">0</span>
             </div>
             <div class="stat-card">
                 <span class="stat-label">Total de Itens</span>
-                <span class="stat-value">24</span>
+                <span class="stat-value" id="statItems">0</span>
             </div>
             <div class="stat-card">
                 <span class="stat-label">Visualizações (Mês)</span>
-                <span class="stat-value">1.240</span>
+                <span class="stat-value">--</span>
             </div>
             <div class="stat-card">
                 <span class="stat-label">Pedidos Hoje</span>
-                <span class="stat-value">12</span>
+                <span class="stat-value">--</span>
             </div>
         </div>
 
         <div class="controls-row">
             <div class="search-box">
                 <i class="fas fa-search"></i>
-                <input type="text" placeholder="Buscar sistema pelo nome...">
+                <input type="text" id="searchInput" placeholder="Buscar sistema pelo nome..." oninput="filterSystems()">
             </div>
             <div style="display: flex; gap: 10px;">
                 <button class="btn-view" style="padding: 10px 15px;"><i class="fas fa-filter"></i></button>
-                <button class="btn-view" style="padding: 10px 15px;"><i class="fas fa-sort-amount-down"></i></button>
             </div>
         </div>
 
         <div id="systemsContainer" class="systems-grid">
-            <!-- System Card 1 -->
-            <div class="system-card">
-                <div class="system-preview">
-                    <i class="fas fa-pizza-slice"></i>
-                </div>
-                
-                <div class="system-main-info">
-                    <div class="system-tags">
-                        <span class="tag tag-status">Ativo</span>
-                        <span class="tag tag-template">Elite Gastronomy</span>
-                    </div>
-                    <h3 id="resNome">Pizzaria do João</h3>
-                    
-                    <div class="system-details-grid">
-                        <div class="detail-box">
-                            <span class="detail-label">Criado em</span>
-                            <span class="detail-value">12/05/2026</span>
-                        </div>
-                        <div class="detail-box">
-                            <span class="detail-label">Itens Cadastrados</span>
-                            <span class="detail-value">24 Produtos</span>
-                        </div>
-                        <div class="detail-box">
-                            <span class="detail-label">Link Público</span>
-                            <span class="detail-value" style="color: var(--primary); font-size: 12px; word-break: break-all;">qrchef.com/cardapio/pizzaria-do-joao</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="system-actions">
-                    <a href="admin-edit-menu.html?slug=pizzaria-do-joao" class="btn-action btn-manage">
-                        <i class="fas fa-pen"></i> Gerenciar Itens
-                    </a>
-                    <a href="#" target="_blank" class="btn-action btn-view">
-                        <i class="fas fa-external-link-alt"></i> Ver Online
-                    </a>
-                    <div style="display: flex; gap: 10px; justify-content: center; margin-top: 5px;">
-                        <button class="btn-config" title="QR Code"><i class="fas fa-qrcode"></i></button>
-                        <button class="btn-config" title="Configurações"><i class="fas fa-cog"></i></button>
-                        <button class="btn-config" title="Estatísticas"><i class="fas fa-chart-line"></i></button>
-                    </div>
-                </div>
-            </div>
+            <p style="text-align: center; color: var(--gray); padding: 40px;">Carregando seus sistemas...</p>
         </div>
     </main>
 
+    <!-- Modal QR Code -->
+    <div id="qrModal" class="qr-modal" onclick="closeQR()">
+        <div class="qr-content" onclick="event.stopPropagation()">
+            <h3 class="syne">Seu QR Code</h3>
+            <p style="color: var(--gray); font-size: 13px; margin-top: 5px;">Aponte a câmera para abrir o cardápio</p>
+            <div id="qrImage"></div>
+            <button class="btn-orange" style="width: 100%;" onclick="downloadQR()">Baixar QR Code</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        const API = 'https://qrchef-worker.luismiguelgomesoliveira-014.workers.dev';
+        let allSystems = [];
+        let qrGenerator = null;
+
+        async function loadSystems() {
+            const token = localStorage.getItem('qrchef_token');
             const userStr = localStorage.getItem('qrchef_user');
+            
+            if (!token) { window.location.href = 'login.html'; return; }
             if (userStr) {
                 const user = JSON.parse(userStr);
-                document.querySelector('.avatar-circle').textContent = user.name.charAt(0).toUpperCase();
+                document.getElementById('userAvatar').textContent = user.name.charAt(0).toUpperCase();
             }
-        });
+
+            try {
+                const res = await fetch(`${API}/restaurant/mine`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    allSystems = data.restaurants;
+                    renderSystems(allSystems);
+                    updateStats(allSystems);
+                }
+            } catch (e) {
+                console.error('Erro ao carregar sistemas:', e);
+                document.getElementById('systemsContainer').innerHTML = '<p style="color: #ff4757; text-align: center;">Erro ao conectar com o servidor.</p>';
+            }
+        }
+
+        function renderSystems(systems) {
+            const container = document.getElementById('systemsContainer');
+            if (systems.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: var(--gray); padding: 40px;">Nenhum sistema encontrado.</p>';
+                return;
+            }
+
+            container.innerHTML = systems.map(sys => `
+                <div class="system-card">
+                    <div class="system-preview" style="background: ${sys.cor_primaria}22;">
+                        <i class="fas fa-utensils" style="color: ${sys.cor_primaria}"></i>
+                    </div>
+                    
+                    <div class="system-main-info">
+                        <div class="system-tags">
+                            <span class="tag tag-status">${sys.ativo ? 'Ativo' : 'Inativo'}</span>
+                            <span class="tag tag-template">Template Padrão</span>
+                        </div>
+                        <h3>${sys.nome}</h3>
+                        
+                        <div class="system-details-grid">
+                            <div class="detail-box">
+                                <span class="detail-label">Criado em</span>
+                                <span class="detail-value">${new Date(sys.created_at).toLocaleDateString('pt-BR')}</span>
+                            </div>
+                            <div class="detail-box">
+                                <span class="detail-label">Slug</span>
+                                <span class="detail-value">${sys.slug}</span>
+                            </div>
+                            <div class="detail-box">
+                                <span class="detail-label">Link Público</span>
+                                <a href="https://qrchef-worker.luismiguelgomesoliveira-014.workers.dev/cardapio/${sys.slug}" target="_blank" class="detail-value" style="color: var(--primary); text-decoration: none; font-size: 12px; word-break: break-all;">
+                                    qrchef.dev/cardapio/${sys.slug}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="system-actions">
+                        <a href="admin-edit-menu.html?slug=${sys.slug}" class="btn-action btn-manage">
+                            <i class="fas fa-pen"></i> Gerenciar Itens
+                        </a>
+                        <a href="https://qrchef-worker.luismiguelgomesoliveira-014.workers.dev/cardapio/${sys.slug}" target="_blank" class="btn-action btn-view">
+                            <i class="fas fa-external-link-alt"></i> Ver Online
+                        </a>
+                        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 5px;">
+                            <button class="btn-config" title="QR Code" onclick="showQR('${sys.slug}')"><i class="fas fa-qrcode"></i></button>
+                            <button class="btn-config" title="Configurações" onclick="alert('Configurações do restaurante em breve!')"><i class="fas fa-cog"></i></button>
+                            <button class="btn-config" title="Estatísticas" onclick="alert('Métricas detalhadas em breve!')"><i class="fas fa-chart-line"></i></button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterSystems() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allSystems.filter(sys => sys.nome.toLowerCase().includes(query));
+            renderSystems(filtered);
+        }
+
+        function updateStats(systems) {
+            document.getElementById('statActive').textContent = systems.filter(s => s.ativo).length.toString().padStart(2, '0');
+            // Como não temos contagem de itens por restaurante aqui, mostramos um -- ou buscamos depois
+            document.getElementById('statItems').textContent = '--';
+        }
+
+        function showQR(slug) {
+            const url = `https://qrchef-worker.luismiguelgomesoliveira-014.workers.dev/cardapio/${slug}`;
+            const qrContainer = document.getElementById('qrImage');
+            qrContainer.innerHTML = '';
+            
+            new QRCode(qrContainer, {
+                text: url,
+                width: 250,
+                height: 250,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            document.getElementById('qrModal').classList.add('active');
+        }
+
+        function closeQR() {
+            document.getElementById('qrModal').classList.remove('active');
+        }
+
+        function downloadQR() {
+            const img = document.querySelector('#qrImage img');
+            if (img) {
+                const link = document.createElement('a');
+                link.download = 'qrcode-cardapio.png';
+                link.href = img.src;
+                link.click();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadSystems);
     </script>
 </body>
 </html>

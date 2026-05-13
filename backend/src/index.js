@@ -273,12 +273,26 @@ app.post('/restaurant/:slug/items', async (c) => {
   const { nome, descricao, preco, categoria, foto_url } = await c.req.json(); 
   const { DB } = c.env; 
 
-  const user = await DB.prepare('SELECT id FROM users WHERE email = ?').bind(email).first(); 
+  const user = await DB.prepare('SELECT id FROM users WHERE email = ?').bind(email).first();
+  if (!user) return c.json({ success: false, message: 'Usuário não encontrado.' }, 404);
+
   const restaurant = await DB.prepare( 
     'SELECT * FROM restaurants WHERE slug = ? AND user_id = ?' 
   ).bind(slug, user.id).first(); 
 
   if (!restaurant) return c.json({ success: false, message: 'Restaurante não encontrado.' }, 404); 
+
+  // --- LÓGICA DE LIMITES POR PLANO ---
+  // Busca o plano do usuário (Simulado: assume Pro se não houver tabela de planos ativa)
+  // No futuro: const subscription = await DB.prepare('SELECT plan FROM subscriptions WHERE user_id = ?').bind(user.id).first();
+  const plan = 'pro'; // Simulação por enquanto
+
+  if (plan === 'basic') {
+    const { count } = await DB.prepare('SELECT COUNT(*) as count FROM menu_items WHERE restaurant_id = ?').bind(restaurant.id).first();
+    if (count >= 20) {
+      return c.json({ success: false, message: 'Limite de 20 itens atingido no Plano Básico. Faça upgrade para o Plano Pro!' }, 403);
+    }
+  }
 
   await DB.prepare( 
     'INSERT INTO menu_items (restaurant_id, categoria, nome, descricao, preco, foto_url) VALUES (?, ?, ?, ?, ?, ?)' 
@@ -314,9 +328,19 @@ app.get('/cardapio/:slug', async (c) => {
   const categoriasArray = Object.keys(categorias); 
   const cor = restaurant.cor_primaria || '#ff4757'; 
 
+  // --- RECURSOS POR PLANO NO FRONTEND ---
+  const plan = 'pro'; // Simulado
+  const config = {
+    hasSearch: plan !== 'basic',
+    hasWhatsApp: plan !== 'basic',
+    hasAnimations: plan === 'premium',
+    maxItems: plan === 'basic' ? 20 : Infinity
+  };
+
   // Gera o JS com os dados reais do banco 
   const menuDataJS = ` 
     const menuData = { 
+      planConfig: ${JSON.stringify(config)},
       categories: ${JSON.stringify(categoriasArray)}, 
       items: ${JSON.stringify(items.map(i => ({ 
         category: i.categoria, 

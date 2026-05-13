@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meus Planos | QRchef</title>
+    <title>Nossos Planos | QRchef</title>
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -21,23 +21,92 @@
             border-bottom: 1px solid var(--glass-border); z-index: 1000; display: flex; align-items: center;
         }
         .header-inner { width: 100%; max-width: 1400px; margin: 0 auto; padding: 0 40px; display: flex; justify-content: space-between; align-items: center; }
-        .main-content { max-width: 1000px; margin: 0 auto; padding: 40px; }
-        .plan-card { 
-            background: var(--dark-gray); border: 1px solid var(--glass-border); border-radius: 32px; 
-            padding: 40px; position: relative; overflow: hidden;
+        .main-content { max-width: 1200px; margin: 0 auto; padding: 60px 40px; }
+        
+        .plans-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-top: 50px;
         }
-        .plan-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; }
-        .plan-badge { background: var(--primary); color: white; padding: 8px 16px; border-radius: 100px; font-size: 12px; font-weight: 800; text-transform: uppercase; }
-        .plan-price { font-size: 36px; font-weight: 800; color: white; }
+
+        .plan-card {
+            background: var(--dark-gray);
+            border: 1px solid var(--glass-border);
+            border-radius: 32px;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            transition: 0.3s;
+        }
+
+        .plan-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .plan-card.featured {
+            border-color: var(--primary);
+            background: linear-gradient(180deg, rgba(255, 92, 0, 0.05) 0%, rgba(21, 21, 21, 1) 100%);
+        }
+
+        .featured-tag {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--primary);
+            color: white;
+            padding: 6px 15px;
+            border-radius: 100px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .plan-name { font-size: 14px; font-weight: 800; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; }
+        .plan-price { font-size: 42px; font-weight: 800; margin-bottom: 30px; }
         .plan-price span { font-size: 16px; color: var(--gray); font-weight: 400; }
-        .plan-features { list-style: none; padding: 0; margin: 30px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .plan-features li { display: flex; align-items: center; gap: 10px; color: #eee; font-size: 14px; }
-        .plan-features i { color: #2ecc71; }
-        .btn-upgrade { background: white; color: black; border: none; padding: 16px 40px; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.3s; width: 100%; }
-        .btn-upgrade:hover { transform: scale(1.02); }
+
+        .plan-features { list-style: none; padding: 0; margin: 0 0 40px 0; flex-grow: 1; }
+        .plan-features li { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; font-size: 14px; color: #eee; }
+        .plan-features i { color: var(--primary); font-size: 16px; }
+        .plan-features li.disabled { color: #555; }
+        .plan-features li.disabled i { color: #333; }
+
+        .btn-select {
+            width: 100%;
+            padding: 18px;
+            border-radius: 16px;
+            border: none;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.3s;
+            text-transform: uppercase;
+            font-size: 13px;
+            letter-spacing: 1px;
+        }
+
+        .plan-card:hover .btn-select {
+            background: var(--primary);
+            box-shadow: 0 10px 20px var(--primary-glow);
+        }
+
+        .btn-select.active {
+            background: var(--primary);
+            box-shadow: 0 10px 20px var(--primary-glow);
+        }
+
         .logo { font-size: 28px; font-weight: 800; text-decoration: none; color: white; }
         .logo span { color: var(--primary); }
         .avatar-circle { width: 40px; height: 40px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; }
+
+        @media (max-width: 1100px) {
+            .plans-container { grid-template-columns: 1fr; max-width: 500px; margin-left: auto; margin-right: auto; }
+        }
     </style>
 </head>
 <body>
@@ -54,24 +123,57 @@
     </header>
 
     <main class="main-content">
-        <h1 class="syne" style="font-size: 32px; margin-bottom: 40px;">Meu Plano Atual</h1>
-        <div class="plan-card">
-            <div class="plan-header">
-                <div>
-                    <span class="plan-badge">Plano Pro</span>
-                    <h2 style="margin-top: 15px; font-size: 24px; color: white;">Profissional em Expansão</h2>
-                </div>
-                <div class="plan-price">R$ 149,90 <span>/mês</span></div>
+        <div style="text-align: center;">
+            <h1 class="syne" style="font-size: 42px; margin-bottom: 15px;">Escolha sua Experiência</h1>
+            <p style="color: var(--gray); font-size: 16px;">Planos sob medida para o crescimento do seu negócio.</p>
+        </div>
+
+        <div class="plans-container">
+            <!-- Plano Básico -->
+            <div class="plan-card">
+                <div class="plan-name">Básico</div>
+                <div class="plan-price">R$ 99,90 <span>/mês</span></div>
+                <ul class="plan-features">
+                    <li><i class="fas fa-check-circle"></i> Até 20 Itens no Cardápio</li>
+                    <li><i class="fas fa-check-circle"></i> Categorias Limitadas (5)</li>
+                    <li><i class="fas fa-check-circle"></i> Layout Padrão QRchef</li>
+                    <li><i class="fas fa-check-circle"></i> QR Code de Mesa</li>
+                    <li class="disabled"><i class="fas fa-times-circle"></i> Busca de Produtos</li>
+                    <li class="disabled"><i class="fas fa-times-circle"></i> Pedidos via WhatsApp</li>
+                </ul>
+                <button class="btn-select">Selecionar Plano</button>
             </div>
-            <ul class="plan-features">
-                <li><i class="fas fa-check-circle"></i> Categorias Ilimitadas</li>
-                <li><i class="fas fa-check-circle"></i> Busca Avançada</li>
-                <li><i class="fas fa-check-circle"></i> Design Moderno</li>
-                <li><i class="fas fa-check-circle"></i> Suporte Prioritário</li>
-                <li><i class="fas fa-check-circle"></i> Multi-idioma</li>
-                <li><i class="fas fa-check-circle"></i> Relatórios Mensais</li>
-            </ul>
-            <button class="btn-upgrade">Alterar Plano</button>
+
+            <!-- Plano Pro -->
+            <div class="plan-card featured">
+                <div class="featured-tag">Mais Popular</div>
+                <div class="plan-name">Pro</div>
+                <div class="plan-price">R$ 149,90 <span>/mês</span></div>
+                <ul class="plan-features">
+                    <li><i class="fas fa-check-circle"></i> Itens Ilimitados</li>
+                    <li><i class="fas fa-check-circle"></i> Categorias Ilimitadas</li>
+                    <li><i class="fas fa-check-circle"></i> Busca Avançada</li>
+                    <li><i class="fas fa-check-circle"></i> Integração WhatsApp Direct</li>
+                    <li><i class="fas fa-check-circle"></i> Suporte Prioritário</li>
+                    <li><i class="fas fa-check-circle"></i> Painel de Vendas</li>
+                </ul>
+                <button class="btn-select active">Seu Plano Atual</button>
+            </div>
+
+            <!-- Plano Premium -->
+            <div class="plan-card">
+                <div class="plan-name" style="color: #ffd700;">Premium</div>
+                <div class="plan-price">R$ 199,90 <span>/mês</span></div>
+                <ul class="plan-features">
+                    <li><i class="fas fa-check-circle"></i> Tudo do Plano Pro</li>
+                    <li><i class="fas fa-check-circle"></i> Identidade Visual Exclusiva</li>
+                    <li><i class="fas fa-check-circle"></i> Animações Fluidas</li>
+                    <li><i class="fas fa-check-circle"></i> Domínio Personalizado</li>
+                    <li><i class="fas fa-check-circle"></i> Relatórios de IA</li>
+                    <li><i class="fas fa-check-circle"></i> Gestor de Tráfego Incluso</li>
+                </ul>
+                <button class="btn-select">Fazer Upgrade</button>
+            </div>
         </div>
     </main>
 
