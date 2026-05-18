@@ -131,6 +131,51 @@
             transform: scale(1.1);
         }
 
+        .plan-tier-badge {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 5px 12px;
+            border-radius: 100px;
+            margin-bottom: 10px;
+        }
+        .plan-tier-basic {
+            background: rgba(255, 92, 0, 0.15);
+            color: var(--primary);
+            border: 1px solid rgba(255, 92, 0, 0.35);
+        }
+        .plan-tier-premium {
+            background: rgba(52, 152, 219, 0.12);
+            color: #3498db;
+            border: 1px solid rgba(52, 152, 219, 0.3);
+        }
+        .system-card--unlocked {
+            border-color: rgba(255, 92, 0, 0.25);
+        }
+        .system-lock-hint {
+            display: none;
+            font-size: 12px;
+            color: #888;
+            margin-top: 8px;
+            line-height: 1.45;
+        }
+        .system-card--premium-tier .system-lock-hint {
+            display: block;
+        }
+        .system-card--premium-active .system-lock-hint {
+            display: none !important;
+        }
+        .btn-upgrade-plan {
+            background: transparent !important;
+            border: 1px solid #3498db !important;
+            color: #3498db !important;
+        }
+        .btn-upgrade-plan:hover {
+            background: rgba(52, 152, 219, 0.12) !important;
+        }
+
         .system-badge {
             position: absolute;
             top: 20px;
@@ -658,8 +703,8 @@
                     <a href="dashboard.html" class="nav-link" role="menuitem">Dashboard</a>
                     <a href="admin-clients.html" class="nav-link" role="menuitem">Clientes</a>
                     <a href="admin-systems-showcase.html" class="nav-link active" role="menuitem">Sistemas</a>
-                    <a href="#" class="nav-link" role="menuitem" style="position: relative;">
-                        Alertas <span class="admin-notif-badge" id="notifBadge">2</span>
+                    <a href="admin-notifications.html" class="nav-link" role="menuitem" style="position: relative;">
+                        Notificação <span class="admin-notif-badge" id="notifBadge">0</span>
                     </a>
                 </div>
             </div>
@@ -716,14 +761,19 @@
             <p class="page-subtitle">Gerencie o catálogo de cardápios digitais de alta conversão da plataforma QRchef.</p>
         </div>
 
+        <p class="page-subtitle" style="margin-bottom: 32px; max-width: 720px; margin-left: auto; margin-right: auto; text-align: center;">
+            <strong style="color: var(--primary);">Plano Básico:</strong> Elite Gastronomy, Quick Bite, Green Garden e Pizza Express — liberados após assinatura e confirmação do pagamento.
+        </p>
+
         <div class="systems-grid">
-            <!-- Sistema 1: Elite -->
-            <div class="system-card">
+            <!-- Sistema 1: Elite — Plano Básico -->
+            <div class="system-card" data-plan-tier="basic">
                 <div class="system-badge">Mais Vendido</div>
                 <div class="system-img-container">
                     <img src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Elite Gastronomy" class="system-img">
                 </div>
                 <div class="system-info">
+                    <span class="plan-tier-badge plan-tier-basic">Plano Básico</span>
                     <span class="system-category">Premium • Dark Mode</span>
                     <h3 class="system-title syne">ELITE GASTRONOMY</h3>
                     
@@ -759,13 +809,13 @@
                             <div class="system-price">R$ 149,90 <span>/instalação</span></div>
                         </div>
                         <div class="actions-group">
-                            <button class="btn-info" onclick="openPlanInfo('premium')" title="Mais informações">
+                            <button class="btn-info" onclick="openPlanInfo('basic')" title="Mais informações">
                                 <i class="fas fa-info-circle"></i>
                             </button>
                             <a href="menu-elite.html" target="_blank" class="btn-action btn-demo">
                                 <i class="fas fa-eye"></i> Demo
                             </a>
-                            <a href="admin-deploy.html?template=elite" class="btn-action btn-deploy">
+                            <a href="admin-deploy.html?template=elite" data-template="elite" class="btn-action btn-deploy">
                                 <i class="fas fa-rocket"></i> Implantar
                             </a>
                         </div>
@@ -773,12 +823,13 @@
                 </div>
             </div>
 
-            <!-- Sistema 2: Quick Bite -->
-            <div class="system-card">
+            <!-- Sistema 2: Quick Bite — Plano Básico -->
+            <div class="system-card" data-plan-tier="basic">
                 <div class="system-img-container">
                     <img src="https://images.unsplash.com/photo-1550547660-d9450f859349?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Quick Bite Express" class="system-img">
                 </div>
                 <div class="system-info">
+                    <span class="plan-tier-badge plan-tier-basic">Plano Básico</span>
                     <span class="system-category">Fast Food • Alta Conversão</span>
                     <h3 class="system-title syne">QUICK BITE EXPRESS</h3>
                     
@@ -820,7 +871,7 @@
                             <a href="menu-quick.html" target="_blank" class="btn-action btn-demo">
                                 <i class="fas fa-eye"></i> Demo
                             </a>
-                            <a href="admin-deploy.html?template=quick" class="btn-action btn-deploy">
+                            <a href="admin-deploy.html?template=quick" data-template="quick" class="btn-action btn-deploy">
                                 <i class="fas fa-rocket"></i> Implantar
                             </a>
                         </div>
@@ -828,14 +879,16 @@
                 </div>
             </div>
 
-            <!-- Sistema 3: Coffee & Co -->
-            <div class="system-card">
+            <!-- Sistema 3: Coffee & Co — Premium (requer Plano Básico) -->
+            <div class="system-card" data-plan-tier="premium">
                 <div class="system-img-container">
                     <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Coffee & Co" class="system-img">
                 </div>
                 <div class="system-info">
+                    <span class="plan-tier-badge plan-tier-premium">Plano Premium</span>
                     <span class="system-category">Cafeteria • Minimalista</span>
                     <h3 class="system-title syne">COFFEE & CO</h3>
+                    <p class="system-lock-hint">Demo liberado. Assine o Plano Premium para adquirir este sistema.</p>
                     
                     <div class="system-stats">
                         <div class="stat-item">
@@ -875,7 +928,7 @@
                             <a href="menu-coffee.html" target="_blank" class="btn-action btn-demo">
                                 <i class="fas fa-eye"></i> Demo
                             </a>
-                            <a href="admin-deploy.html?template=coffee" class="btn-action btn-deploy">
+                            <a href="admin-deploy.html?template=coffee" data-template="coffee" class="btn-action btn-deploy">
                                 <i class="fas fa-rocket"></i> Implantar
                             </a>
                         </div>
@@ -883,15 +936,17 @@
                 </div>
             </div>
 
-            <!-- Sistema 4: Sushi Master -->
-            <div class="system-card">
+            <!-- Sistema 4: Sushi Master — Premium -->
+            <div class="system-card" data-plan-tier="premium">
                 <div class="system-badge" style="background: #3498db;">Novo</div>
                 <div class="system-img-container">
                     <img src="https://images.unsplash.com/photo-1579871494447-9811cf80d66c?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Sushi Master" class="system-img">
                 </div>
                 <div class="system-info">
+                    <span class="plan-tier-badge plan-tier-premium">Plano Premium</span>
                     <span class="system-category">Oriental • Elegante</span>
                     <h3 class="system-title syne">SUSHI MASTER PRO</h3>
+                    <p class="system-lock-hint">Demo liberado. Assine o Plano Premium para adquirir este sistema.</p>
                     
                     <div class="system-stats">
                         <div class="stat-item">
@@ -931,7 +986,7 @@
                             <a href="menu-premium.html" target="_blank" class="btn-action btn-demo">
                                 <i class="fas fa-eye"></i> Demo
                             </a>
-                            <a href="admin-deploy.html?template=premium" class="btn-action btn-deploy">
+                            <a href="admin-deploy.html?template=premium" data-template="premium" class="btn-action btn-deploy">
                                 <i class="fas fa-rocket"></i> Implantar
                             </a>
                         </div>
@@ -939,12 +994,13 @@
                 </div>
             </div>
 
-            <!-- Sistema 5: Green Garden -->
-            <div class="system-card">
+            <!-- Sistema 5: Green Garden — Plano Básico -->
+            <div class="system-card" data-plan-tier="basic">
                 <div class="system-img-container">
                     <img src="https://images.unsplash.com/photo-1543332164-6e82f355badc?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Green Garden" class="system-img">
                 </div>
                 <div class="system-info">
+                    <span class="plan-tier-badge plan-tier-basic">Plano Básico</span>
                     <span class="system-category">Saudável • Clean</span>
                     <h3 class="system-title syne">GREEN GARDEN</h3>
                     
@@ -986,7 +1042,7 @@
                             <a href="menu-basic.html" target="_blank" class="btn-action btn-demo">
                                 <i class="fas fa-eye"></i> Demo
                             </a>
-                            <a href="admin-deploy.html?template=basic" class="btn-action btn-deploy">
+                            <a href="admin-deploy.html?template=basic" data-template="basic" class="btn-action btn-deploy">
                                 <i class="fas fa-rocket"></i> Implantar
                             </a>
                         </div>
@@ -994,12 +1050,13 @@
                 </div>
             </div>
 
-            <!-- Sistema 6: Pizza Express -->
-            <div class="system-card">
+            <!-- Sistema 6: Pizza Express — Plano Básico -->
+            <div class="system-card" data-plan-tier="basic">
                 <div class="system-img-container">
                     <img src="https://images.unsplash.com/photo-1513104890138-7c749659a591?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Pizza Express" class="system-img">
                 </div>
                 <div class="system-info">
+                    <span class="plan-tier-badge plan-tier-basic">Plano Básico</span>
                     <span class="system-category">Pizzaria • Funcional</span>
                     <h3 class="system-title syne">PIZZA EXPRESS</h3>
                     
@@ -1035,13 +1092,13 @@
                             <div class="system-price">R$ 109,90 <span>/instalação</span></div>
                         </div>
                         <div class="actions-group">
-                            <button class="btn-info" onclick="openPlanInfo('pro')" title="Mais informações">
+                            <button class="btn-info" onclick="openPlanInfo('basic')" title="Mais informações">
                                 <i class="fas fa-info-circle"></i>
                             </button>
                             <a href="menu-pro.html" target="_blank" class="btn-action btn-demo">
                                 <i class="fas fa-eye"></i> Demo
                             </a>
-                            <a href="admin-deploy.html?template=pro" class="btn-action btn-deploy">
+                            <a href="admin-deploy.html?template=pro" data-template="pro" class="btn-action btn-deploy">
                                 <i class="fas fa-rocket"></i> Implantar
                             </a>
                         </div>
@@ -1077,8 +1134,18 @@
         <div style="background:#111; border:1px solid rgba(255,255,255,0.1); border-radius:32px; max-width:480px; width:100%; padding:40px; position:relative; animation: modalFadeIn 0.4s ease;"> 
             <button onclick="fecharModalCriar()" style="position:absolute; top:20px; right:20px; background:rgba(255,255,255,0.05); border:none; color:white; width:36px; height:36px; border-radius:50%; cursor:pointer; font-size:16px;">✕</button> 
             
-            <h2 style="font-size:24px; font-weight:800; margin-bottom:8px;">Criar seu Cardápio</h2> 
-            <p style="color:#888; font-size:14px; margin-bottom:30px;">Seu restaurante vai estar online em segundos.</p> 
+            <div id="paymentStepsIndicator" style="display:flex; gap:8px; margin-bottom:20px;">
+                <span class="pay-step-dot active" data-step="1"></span>
+                <span class="pay-step-dot" data-step="2"></span>
+                <span class="pay-step-dot" data-step="3"></span>
+            </div>
+            <h2 id="modalTitulo" style="font-size:24px; font-weight:800; margin-bottom:8px; text-transform:uppercase;">Adquirir Sistema</h2>
+            <p id="modalSubtitulo" style="color:#888; font-size:14px; margin-bottom:24px;">Preencha os dados do seu estabelecimento.</p>
+            <div id="paySystemBadge" style="display:none; background:rgba(255,71,87,0.08); border:1px solid rgba(255,71,87,0.2); border-radius:12px; padding:14px; margin-bottom:20px;">
+                <p style="font-size:12px; color:#aaa; margin:0 0 4px;">Sistema selecionado</p>
+                <p id="paySystemName" style="font-weight:800; margin:0; font-size:16px;"></p>
+                <p id="paySystemPrice" style="color:var(--primary); font-weight:800; margin:6px 0 0; font-size:18px;"></p>
+            </div>
     
             <div style="display:flex; flex-direction:column; gap:16px;"> 
                 <div> 
@@ -1096,7 +1163,7 @@
     
             <div id="msgCriar" style="margin-top:16px; font-size:13px; display:none;"></div> 
     
-            <button onclick="criarRestaurante()" id="btnCriar" style="width:100%; margin-top:24px; padding:16px; background:var(--primary); color:white; border:none; border-radius:14px; font-size:15px; font-weight:800; cursor:pointer; transition:0.3s;"> 
+            <button type="button" id="btnCriar" style="width:100%; margin-top:24px; padding:16px; background:var(--primary); color:white; border:none; border-radius:14px; font-size:15px; font-weight:800; cursor:pointer; transition:0.3s;"> 
                 <i class="fas fa-rocket"></i> Criar e Ativar Cardápio 
             </button> 
     
@@ -1118,95 +1185,11 @@
     </div>
 
     <script src="../js/auth.js"></script>
+    <script src="../js/ui-modal.js"></script>
+    <script src="../js/system-plans.js"></script>
+    <script src="../js/admin-notifications.js"></script>
+    <script src="../js/purchase-flow.js"></script>
     <script>
-        const API = 'https://qrchef-worker.luismiguelgomesoliveira-014.workers.dev'; 
-        let linkGerado = ''; 
-        let slugGerado = '';
-        
-        function abrirModalCriarRestaurante(template) { 
-            const modal = document.getElementById('modalCriar'); 
-            modal.style.display = 'flex'; 
-            document.body.style.overflow = 'hidden'; 
-            // Limpa estado anterior 
-            document.getElementById('resultadoCriar').style.display = 'none'; 
-            document.getElementById('msgCriar').style.display = 'none'; 
-            document.getElementById('inputNome').value = ''; 
-            document.getElementById('btnCriar').style.display = 'block'; 
-        } 
-        
-        function fecharModalCriar() { 
-            document.getElementById('modalCriar').style.display = 'none'; 
-            document.body.style.overflow = ''; 
-        } 
-        
-        async function criarRestaurante() { 
-            const nome = document.getElementById('inputNome').value.trim(); 
-            const cor = document.getElementById('inputCor').value; 
-            const msg = document.getElementById('msgCriar'); 
-        
-            if (!nome) { 
-                msg.style.display = 'block'; 
-                msg.style.color = '#ff4757'; 
-                msg.textContent = 'Digite o nome do restaurante.'; 
-                return; 
-            } 
-        
-            const userStr = localStorage.getItem('qrchef_user'); 
-            const token = localStorage.getItem('qrchef_token'); 
-            if (!userStr || !token) { 
-                window.location.href = 'login.html'; 
-                return; 
-            } 
-        
-            const btn = document.getElementById('btnCriar'); 
-            btn.textContent = 'Criando...'; 
-            btn.disabled = true; 
-        
-            try { 
-                const res = await fetch(`${API}/restaurant/create`, { 
-                    method: 'POST', 
-                    headers: { 
-                        'Content-Type': 'application/json', 
-                        'Authorization': `Bearer ${token}` 
-                    }, 
-                    body: JSON.stringify({ nome, cor_primaria: cor }) 
-                }); 
-        
-                const data = await res.json(); 
-        
-                if (data.success) { 
-                    linkGerado = data.link; 
-                    slugGerado = data.slug;
-                    document.getElementById('linkCardapio').href = linkGerado; 
-                    document.getElementById('linkCardapio').textContent = linkGerado; 
-                    document.getElementById('resultadoCriar').style.display = 'block'; 
-                    btn.style.display = 'none'; 
-                    msg.style.display = 'none'; 
-                } else { 
-                    msg.style.display = 'block'; 
-                    msg.style.color = '#ff4757'; 
-                    msg.textContent = data.message || 'Erro ao criar restaurante.'; 
-                    btn.textContent = 'Criar e Ativar Cardápio'; 
-                    btn.disabled = false; 
-                } 
-            } catch (e) { 
-                msg.style.display = 'block'; 
-                msg.style.color = '#ff4757'; 
-                msg.textContent = 'Erro de conexão com o servidor.'; 
-                btn.textContent = 'Criar e Ativar Cardápio'; 
-                btn.disabled = false; 
-            } 
-        } 
-        
-        function copiarLink() { 
-            navigator.clipboard.writeText(linkGerado); 
-            alert('Link copiado!'); 
-        } 
-        
-        function irParaCardapio() { 
-            // Redireciona para a nova tela de edição com o slug do restaurante
-            window.location.href = `admin-edit-menu.html?slug=${slugGerado}`; 
-        } 
         const planDetails = {
             basic: {
                 tag: 'Essencial',
@@ -1309,16 +1292,7 @@
                 if (user.email === 'adminsistema@sistema.com' || user.email === 'adminsistema2@sistema.com') {
                     document.body.classList.add('is-admin');
                 } else {
-                    // For clients, change "Implantar" text to something more customer-facing
-                    document.querySelectorAll('.btn-deploy').forEach(btn => {
-                        btn.innerHTML = '<i class="fas fa-shopping-cart"></i> Adquirir';
-                        btn.href = '#'; // In a real app, this would lead to a checkout or contact
-                        btn.onclick = (e) => {
-                            e.preventDefault();
-                            const template = btn.closest('a')?.href?.split('template=')[1] || 'basico'; 
-                            abrirModalCriarRestaurante(template); 
-                        };
-                    });
+                    SystemPlans.initClientShowcase();
                 }
             } else {
                 window.location.href = 'login.html';

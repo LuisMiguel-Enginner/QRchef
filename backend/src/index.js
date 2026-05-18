@@ -200,49 +200,286 @@ app.get('/client/systems/:userId', async (c) => {
     }
 })
 
-// ─── HELPER: pega user_id do token ─────────────────────────────────────────── 
+// ─── HELPERS DE AUTENTICAÇÃO ───────────────────────────────────────────────── 
+const ADMIN_EMAILS = ['admin@sistema.com', 'adminsistema@sistema.com', 'adminsistema2@sistema.com'];
+
 function getUserIdFromToken(c) { 
   const auth = c.req.header('Authorization') || ''; 
   const token = auth.replace('Bearer ', ''); 
-  // Seu token atual é "sessao_" + btoa(email) 
-  // Precisamos buscar o user pelo email decodificado 
   if (!token.startsWith('sessao_')) return null; 
   try { 
-    return atob(token.replace('sessao_', '')); // retorna o email 
+    return atob(token.replace('sessao_', '')); 
   } catch { 
     return null; 
   } 
-} 
+}
 
-// ─── CRIAR RESTAURANTE ─────────────────────────────────────────────────────── 
+function isAdminEmail(email) {
+  return ADMIN_EMAILS.includes(email);
+}
+
+const BASIC_PLAN_TEMPLATES = ['elite', 'quick', 'basic', 'pro'];
+const PREMIUM_PLAN_TEMPLATES = ['coffee', 'premium'];
+
+function isBasicPlanTemplate(templateId) {
+  return BASIC_PLAN_TEMPLATES.includes(templateId);
+}
+
+function subscriptionPlanIdForTemplate(templateId) {
+  return isBasicPlanTemplate(templateId) ? 'basic' : (PREMIUM_PLAN_TEMPLATES.includes(templateId) ? 'premium' : 'pro');
+}
+
+async function userHasActiveBasicPlan(DB, userId) {
+  const sub = await DB.prepare(`
+    SELECT plan_id FROM subscriptions
+    WHERE user_id = ? AND status = 'active'
+    ORDER BY id DESC LIMIT 1
+  `).bind(userId).first();
+  if (!sub) return false;
+  return sub.plan_id === 'basic' || BASIC_PLAN_TEMPLATES.includes(sub.plan_id);
+}
+
+function slugify(text) {
+  return (text || '')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+async function getUserFromToken(c) {
+  const email = getUserIdFromToken(c);
+  if (!email) return null;
+  const user = await c.env.DB.prepare('SELECT id, name, email FROM users WHERE email = ?').bind(email).first();
+  return user || null;
+}
+
+function menuLink(slug) {
+  return `https://qrchef-worker.luismiguelgomesoliveira-014.workers.dev/cardapio/${slug}`;
+}
+
+async function createRestaurantForUser(DB, userId, nome, cor_primaria, slugHint, templateId) {
+  const finalSlug = slugify(slugHint || nome);
+  try {
+    await DB.prepare(
+      'INSERT INTO restaurants (user_id, slug, nome, cor_primaria, template_id) VALUES (?, ?, ?, ?, ?)'
+    ).bind(userId, finalSlug, nome, cor_primaria || '#e63946', templateId || null).run();
+  } catch {
+    await DB.prepare(
+      'INSERT INTO restaurants (user_id, slug, nome, cor_primaria) VALUES (?, ?, ?, ?)'
+    ).bind(userId, finalSlug, nome, cor_primaria || '#e63946').run();
+  }
+  return { slug: finalSlug, link: menuLink(finalSlug) };
+}
+
+// Status do plano do cliente (assinatura)
+app.get('/client/plan-status', async (c) => {
+  const user = await getUserFromToken(c);
+  if (!user) return c.json({ success: false, message: 'Não autenticado.' }, 401);
+
+  const { DB } = c.env;
+  try {
+    const hasBasic = await userHasActiveBasicPlan(DB, user.id);
+    const sub = await DB.prepare(`
+      SELECT plan_id, status, created_at FROM subscriptions
+      WHERE user_id = ? AND status = 'active'
+      ORDER BY id DESC LIMIT 1
+    `).bind(user.id).first();
+
+    const hasPremium = sub?.plan_id === 'premium';
+
+    return c.json({
+      success: true,
+      hasBasic,
+      hasPremium,
+      plan: sub?.plan_id || null,
+      status: sub?.status || null
+    });
+  } catch (e) {
+    return c.json({ success: false, message: 'Erro ao consultar plano.' }, 500);
+  }
+});
+
+// ─── SOLICITAÇÃO DE COMPRA (CLIENTE) ───────────────────────────────────────── 
+app.post('/purchase/request', async (c) => {
+  const user = await getUserFromToken(c);
+  if (!user) return c.json({ success: false, message: 'Não autenticado.' }, 401);
+
+  const { template_id, system_name, restaurant_name, cor_primaria, amount, payment_method } = await c.req.json();
+  const { DB } = c.env;
+
+  if (!template_id || !restaurant_name || !payment_method || amount == null) {
+    return c.json({ success: false, message: 'Preencha todos os campos da solicitação.' }, 400);
+  }
+
+  if (!isBasicPlanTemplate(template_id)) {
+    const hasBasic = await userHasActiveBasicPlan(DB, user.id);
+    if (!hasBasic) {
+      return c.json({
+        success: false,
+        message: 'Assine o Plano Básico primeiro (Elite, Quick Bite, Green Garden ou Pizza Express).'
+      }, 403);
+    }
+  }
+
+  try {
+    const result = await DB.prepare(`
+      INSERT INTO purchase_requests (
+        user_id, template_id, system_name, restaurant_name, cor_primaria,
+        amount, payment_method, status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, 'awaiting_admin')
+    `).bind(
+      user.id,
+      template_id,
+      system_name || template_id,
+      restaurant_name,
+      cor_primaria || '#e63946',
+      Number(amount),
+      payment_method
+    ).run();
+
+    return c.json({
+      success: true,
+      requestId: result.meta.last_row_id,
+      message: 'Solicitação registrada. Aguarde a confirmação do administrador.'
+    });
+  } catch (e) {
+    console.error('Erro ao criar solicitação:', e);
+    return c.json({ success: false, message: 'Erro ao registrar solicitação. Execute a migração 0004 no banco D1.' }, 500);
+  }
+});
+
+app.get('/purchase/request/:id', async (c) => {
+  const user = await getUserFromToken(c);
+  if (!user) return c.json({ success: false, message: 'Não autenticado.' }, 401);
+
+  const id = c.req.param('id');
+  const { DB } = c.env;
+
+  try {
+    const req = await DB.prepare(`
+      SELECT id, template_id, system_name, restaurant_name, amount, payment_method,
+             status, restaurant_slug, menu_link, created_at, approved_at
+      FROM purchase_requests
+      WHERE id = ? AND user_id = ?
+    `).bind(id, user.id).first();
+
+    if (!req) return c.json({ success: false, message: 'Solicitação não encontrada.' }, 404);
+    return c.json({ success: true, request: req });
+  } catch (e) {
+    return c.json({ success: false, message: 'Erro ao consultar solicitação.' }, 500);
+  }
+});
+
+// ─── SOLICITAÇÕES PENDENTES (ADMIN) ────────────────────────────────────────── 
+app.get('/admin/purchase-requests', async (c) => {
+  const email = getUserIdFromToken(c);
+  if (!email || !isAdminEmail(email)) {
+    return c.json({ success: false, message: 'Acesso negado.' }, 403);
+  }
+
+  const status = c.req.query('status') || 'awaiting_admin';
+  const { DB } = c.env;
+
+  try {
+    const { results } = await DB.prepare(`
+      SELECT pr.*, u.name as user_name, u.email as user_email
+      FROM purchase_requests pr
+      JOIN users u ON pr.user_id = u.id
+      WHERE pr.status = ?
+      ORDER BY pr.created_at ASC
+    `).bind(status).all();
+
+    return c.json({ success: true, requests: results || [] });
+  } catch (e) {
+    console.error('Erro ao listar solicitações:', e);
+    return c.json({ success: false, message: 'Erro ao buscar solicitações.' }, 500);
+  }
+});
+
+app.post('/admin/purchase-requests/:id/approve', async (c) => {
+  const email = getUserIdFromToken(c);
+  if (!email || !isAdminEmail(email)) {
+    return c.json({ success: false, message: 'Acesso negado.' }, 403);
+  }
+
+  const id = c.req.param('id');
+  const { DB } = c.env;
+
+  try {
+    const req = await DB.prepare('SELECT * FROM purchase_requests WHERE id = ?').bind(id).first();
+    if (!req) return c.json({ success: false, message: 'Solicitação não encontrada.' }, 404);
+    if (req.status === 'approved') {
+      return c.json({
+        success: true,
+        slug: req.restaurant_slug,
+        link: req.menu_link,
+        message: 'Solicitação já aprovada.'
+      });
+    }
+
+    const { slug, link } = await createRestaurantForUser(
+      DB, req.user_id, req.restaurant_name, req.cor_primaria, req.restaurant_name, req.template_id
+    );
+
+    const planId = subscriptionPlanIdForTemplate(req.template_id);
+    await DB.prepare(`
+      INSERT INTO subscriptions (user_id, plan_id, status) VALUES (?, ?, 'active')
+    `).bind(req.user_id, planId).run();
+
+    await DB.prepare(`
+      UPDATE purchase_requests
+      SET status = 'approved', restaurant_slug = ?, menu_link = ?, approved_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).bind(slug, link, id).run();
+
+    return c.json({ success: true, slug, link, message: 'Solicitação aprovada e cardápio ativado!' });
+  } catch (e) {
+    console.error('Erro ao aprovar:', e);
+    const msg = String(e).includes('UNIQUE') ? 'Esse nome de restaurante já está em uso.' : 'Erro ao aprovar solicitação.';
+    return c.json({ success: false, message: msg }, 500);
+  }
+});
+
+app.post('/admin/purchase-requests/:id/reject', async (c) => {
+  const email = getUserIdFromToken(c);
+  if (!email || !isAdminEmail(email)) {
+    return c.json({ success: false, message: 'Acesso negado.' }, 403);
+  }
+
+  const id = c.req.param('id');
+  const { DB } = c.env;
+
+  try {
+    await DB.prepare(`
+      UPDATE purchase_requests SET status = 'rejected' WHERE id = ? AND status = 'awaiting_admin'
+    `).bind(id).run();
+    return c.json({ success: true, message: 'Solicitação recusada.' });
+  } catch (e) {
+    return c.json({ success: false, message: 'Erro ao recusar solicitação.' }, 500);
+  }
+});
+
+// ─── CRIAR RESTAURANTE (SOMENTE ADMIN) ─────────────────────────────────────── 
 app.post('/restaurant/create', async (c) => { 
   const email = getUserIdFromToken(c); 
   if (!email) return c.json({ success: false, message: 'Não autenticado.' }, 401); 
+  if (!isAdminEmail(email)) {
+    return c.json({
+      success: false,
+      message: 'Use o fluxo de aquisição. Seu cardápio será liberado após confirmação do administrador.'
+    }, 403);
+  }
 
   const { nome, slug, cor_primaria } = await c.req.json(); 
   const { DB } = c.env; 
 
-  // Busca o user pelo email 
   const user = await DB.prepare('SELECT id FROM users WHERE email = ?').bind(email).first(); 
   if (!user) return c.json({ success: false, message: 'Usuário não encontrado.' }, 404); 
 
-  // Gera slug automático se não enviado 
-  const finalSlug = (slug || nome) 
-    .toLowerCase() 
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') 
-    .replace(/[^a-z0-9]+/g, '-') 
-    .replace(/^-|-$/g, ''); 
-
   try { 
-    await DB.prepare( 
-      'INSERT INTO restaurants (user_id, slug, nome, cor_primaria) VALUES (?, ?, ?, ?)' 
-    ).bind(user.id, finalSlug, nome, cor_primaria || '#e63946').run(); 
-
-    return c.json({ 
-      success: true, 
-      slug: finalSlug, 
-      link: `https://qrchef-worker.luismiguelgomesoliveira-014.workers.dev/cardapio/${finalSlug}` 
-    }); 
+    const { slug: finalSlug, link } = await createRestaurantForUser(DB, user.id, nome, cor_primaria, slug || nome);
+    return c.json({ success: true, slug: finalSlug, link }); 
   } catch (e) { 
     return c.json({ success: false, message: 'Esse nome já está em uso.' }, 409); 
   } 

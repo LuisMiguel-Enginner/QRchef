@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notificações | Admin QRchef</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background-color: var(--black); margin: 0; padding: 0; color: white; }
+
+        .dashboard-header-top {
+            background: #0d0d0d;
+            border-bottom: 1px solid var(--glass-border);
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 85px;
+            z-index: 1100;
+            display: flex;
+            align-items: center;
+        }
+        .header-inner {
+            width: 100%; max-width: 1400px; margin: 0 auto;
+            padding: 0 40px;
+            display: flex; justify-content: space-between; align-items: center;
+            height: 100%;
+        }
+        .nav-menu { display: flex; gap: 40px; align-items: center; }
+        .nav-link {
+            color: var(--gray);
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            transition: all 0.3s ease;
+            padding: 8px 12px;
+            border-radius: 8px;
+            position: relative;
+        }
+        .nav-link:hover { color: white; background: rgba(255, 255, 255, 0.05); }
+        .nav-link.active { color: var(--primary); }
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 12px; right: 12px;
+            height: 2px;
+            background: var(--primary);
+            box-shadow: 0 0 10px var(--primary);
+        }
+        .admin-notif-badge {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            background: #ff4757;
+            color: white;
+            font-size: 10px;
+            font-weight: 800;
+            border-radius: 50%;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+        .header-profile { display: flex; align-items: center; gap: 15px; padding-left: 20px; border-left: 1px solid var(--glass-border); }
+        .user-meta { text-align: right; line-height: 1.2; }
+        .user-name { display: block; font-size: 13px; font-weight: 800; }
+        .user-email { display: block; font-size: 11px; color: var(--gray); }
+        .avatar-circle {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), #ff8c00);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; color: white; cursor: pointer;
+        }
+
+        .main-content { padding: 130px 40px 60px; max-width: 900px; margin: 0 auto; }
+        .page-header { margin-bottom: 32px; }
+        .page-title {
+            font-size: 32px; font-weight: 800; margin: 0 0 10px;
+            display: flex; align-items: center; gap: 15px;
+        }
+        .page-title::before {
+            content: ''; width: 8px; height: 32px;
+            background: var(--primary); border-radius: 4px;
+        }
+        .page-subtitle { color: var(--gray); font-size: 15px; margin: 0; line-height: 1.6; }
+
+        .notif-summary {
+            display: flex; align-items: center; gap: 12px;
+            padding: 16px 20px;
+            background: rgba(255, 71, 87, 0.08);
+            border: 1px solid rgba(255, 71, 87, 0.25);
+            border-radius: 14px;
+            margin-bottom: 28px;
+            font-size: 14px;
+        }
+        .notif-summary strong { color: var(--primary); font-size: 20px; }
+
+        #notificationsList { display: flex; flex-direction: column; gap: 20px; }
+        .notif-loading, .notif-error { text-align: center; color: var(--gray); padding: 40px; }
+
+        .notif-card {
+            background: #111;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: border-color 0.3s;
+        }
+        .notif-card:hover { border-color: rgba(255, 71, 87, 0.35); }
+        .notif-card-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 22px;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .notif-type { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: var(--primary); }
+        .notif-type i { margin-right: 6px; }
+        .notif-date { font-size: 12px; color: var(--gray); }
+        .notif-card-body { padding: 20px 22px; display: flex; flex-direction: column; gap: 14px; }
+        .notif-row { display: flex; flex-direction: column; gap: 4px; }
+        .notif-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gray); }
+        .notif-meta { font-size: 13px; color: #888; }
+        .notif-payment {
+            flex-direction: row; justify-content: space-between; align-items: center;
+            padding-top: 12px; border-top: 1px dashed rgba(255,255,255,0.08);
+            font-size: 14px;
+        }
+        .notif-amount { color: var(--primary); font-weight: 800; font-size: 18px; }
+        .notif-card-footer {
+            padding: 18px 22px 22px;
+            background: rgba(0,0,0,0.2);
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        .notif-hint {
+            margin: 0 0 14px; font-size: 13px; color: #aaa; line-height: 1.5;
+        }
+        .notif-hint i { color: #25D366; margin-right: 6px; }
+        .notif-confirm-pay {
+            display: flex; align-items: center; gap: 10px;
+            margin-bottom: 16px; cursor: pointer;
+            font-size: 14px; font-weight: 600;
+        }
+        .notif-confirm-pay input { width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer; }
+        .notif-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn-notif-reject {
+            padding: 12px 18px; background: transparent;
+            border: 1px solid rgba(255,255,255,0.15); color: #aaa;
+            border-radius: 10px; font-weight: 700; cursor: pointer;
+        }
+        .btn-notif-reject:hover { border-color: #ff4757; color: #ff4757; }
+        .btn-notif-approve {
+            flex: 1; min-width: 200px;
+            padding: 12px 20px; background: var(--primary); border: none;
+            color: white; border-radius: 10px; font-weight: 800; cursor: pointer;
+            opacity: 1; transition: opacity 0.2s;
+        }
+        .btn-notif-approve:disabled { opacity: 0.4; cursor: not-allowed; }
+        .notif-success {
+            padding: 24px; text-align: center;
+        }
+        .notif-success i { font-size: 36px; color: #4CAF50; margin-bottom: 12px; }
+        .notif-success a { color: var(--primary); word-break: break-all; font-size: 13px; }
+
+        #notificationsEmpty {
+            text-align: center; padding: 60px 20px;
+            color: var(--gray); display: none;
+        }
+        #notificationsEmpty i { font-size: 48px; opacity: 0.25; margin-bottom: 16px; display: block; }
+    </style>
+</head>
+<body>
+    <header class="dashboard-header-top">
+        <div class="header-inner">
+            <a href="dashboard.html" class="logo">QR<span>chef</span></a>
+            <div class="nav-menu admin-only" role="menubar">
+                <a href="dashboard.html" class="nav-link">Dashboard</a>
+                <a href="admin-clients.html" class="nav-link">Clientes</a>
+                <a href="admin-systems-showcase.html" class="nav-link">Sistemas</a>
+                <a href="admin-notifications.html" class="nav-link active">Notificação <span class="admin-notif-badge" id="notifBadge">0</span></a>
+            </div>
+            <div class="header-profile">
+                <div class="user-meta">
+                    <span class="user-name">Admin Sistema</span>
+                    <span class="user-email">adminsistema@sistema.com</span>
+                </div>
+                <div class="avatar-circle">A</div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="page-header">
+            <h1 class="page-title syne">Notificações</h1>
+            <p class="page-subtitle">Solicitações de sistemas feitas pelos clientes. Aprove somente após confirmar o pagamento no WhatsApp.</p>
+        </div>
+
+        <div class="notif-summary">
+            <i class="fas fa-inbox" style="font-size:22px;color:var(--primary);"></i>
+            <span><strong id="notifPageCount">0</strong> solicitação(ões) aguardando confirmação</span>
+        </div>
+
+        <div id="notificationsList"></div>
+
+        <div id="notificationsEmpty">
+            <i class="fas fa-bell-slash"></i>
+            <p>Nenhuma notificação pendente no momento.</p>
+            <p style="font-size:13px;margin-top:8px;">Quando um cliente solicitar um sistema, aparecerá aqui.</p>
+        </div>
+    </main>
+
+    <script src="../js/auth.js"></script>
+    <script src="../js/ui-modal.js"></script>
+    <script src="../js/admin-notifications.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const userStr = localStorage.getItem('qrchef_user');
+            if (!userStr) {
+                window.location.href = 'login.html';
+                return;
+            }
+            const user = JSON.parse(userStr);
+            if (user.email !== 'adminsistema@sistema.com' && user.email !== 'adminsistema2@sistema.com') {
+                window.location.href = 'dashboard.html';
+            }
+        });
+    </script>
+</body>
+</html>
