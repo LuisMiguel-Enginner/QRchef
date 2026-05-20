@@ -2,10 +2,9 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Demonstração | QRchef</title>
     <link rel="stylesheet" href="../css/style.css">
-    <link rel="stylesheet" href="../css/responsive.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body {
@@ -13,6 +12,7 @@
             background-image: 
                 radial-gradient(circle at 10% 20%, rgba(255, 92, 0, 0.05) 0%, transparent 40%),
                 radial-gradient(circle at 90% 80%, rgba(255, 92, 0, 0.05) 0%, transparent 40%);
+            padding-top: 72px;
         }
         .demo-hero {
             padding: 160px 0 60px;
@@ -28,7 +28,7 @@
         }
         .demo-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
             gap: 30px;
             padding-bottom: 100px;
         }
@@ -392,6 +392,8 @@
             font-weight: 400;
         }
     </style>
+    <link rel="stylesheet" href="../css/responsive.css">
+
 </head>
 <body>
     <nav>

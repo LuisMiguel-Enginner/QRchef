@@ -2,10 +2,9 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Gestão de Clientes | Admin QRchef</title>
     <link rel="stylesheet" href="../css/style.css">
-    <link rel="stylesheet" href="../css/responsive.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body { background-color: var(--black); margin: 0; padding: 0; color: white; }
@@ -108,6 +107,14 @@
             display: flex;
             align-items: center;
             gap: 20px;
+        }
+
+        @media (max-width: 992px) {
+            .stats-overview { grid-template-columns: repeat(2, 1fr); }
+            .page-header { flex-direction: column; align-items: stretch; gap: 16px; }
+        }
+        @media (max-width: 576px) {
+            .stats-overview { grid-template-columns: 1fr; }
         }
 
         .stat-icon {
@@ -230,6 +237,8 @@
         .avatar-circle { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), #ff8c00); display: flex; align-items: center; justify-content: center; font-weight: 800; color: white; }
         .btn-logout { background: rgba(255, 51, 51, 0.1); border: 1px solid rgba(255, 51, 51, 0.2); color: #ff4757; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; }
     </style>
+    <link rel="stylesheet" href="../css/responsive.css">
+
 </head>
 <body>
     <header class="dashboard-header-top">
