@@ -351,20 +351,55 @@
             .profile-grid { grid-template-columns: 1fr; }
         }
     </style>
+    <link rel="stylesheet" href="../css/responsive.css">
 </head>
 <body>
-    <        <div classboard="headertopnner">
-            <a h=ashboamln" class="logo">QR<       <div style="display: flelogotems: center; gap: 20px;">
-           "(i)-:nyge700i ptcy:o=tex;"l='gvra)'"
-:ccsr-er;tg p: l0px;
-      </a>
-                ddmin-syitems-svcwclses="av" try"e/dco >
-:v r(lagray);stext- eior id">:"
-o
-; fo t s zt:14ox;nfo tdwi gl":700;-ir>osPaii : 0.3/;  ónmo    ve"lathps.styrofvo-orm'ah="f's-onmo"><oztf=thi#.utrlc "opo-a'vfr(c-gr y)'"          </nav>
-     "profile-nav-cardar ow-lsfldding:;V  tvgsporPa-hml-m: 10px;">Statu   a<dtyle="color: #2ec ;v align-i vp  r-c  cle" Pi class="fas fa-check-circle"></i> Plano Pro Ativo
-                    </div> 
-on   t lass="profile-content">
+    <header class="dash-header-v2">
+        <div class="dash-header-container">
+            <a href="dashboard.html" class="dash-brand">QR<span>chef</span></a>
+            <nav class="dash-nav-v2">
+                <a href="dashboard.html" class="dash-nav-link-v2">Início</a>
+                <a href="user-systems.html" class="dash-nav-link-v2">Sistemas</a>
+                <a href="user-plans.html" class="dash-nav-link-v2">Planos</a>
+                <a href="dashboard.html#support" class="dash-nav-link-v2">Suporte</a>
+            </nav>
+            <div class="dash-user-section">
+                <div class="dash-user-info-v2">
+                    <span class="dash-user-name-v2" id="uName">Carregando...</span>
+                    <span class="dash-user-email-v2" id="uEmail">...</span>
+                </div>
+                <div class="dash-avatar-v2 avatar-circle" id="uAvatar" onclick="toggleUserMenu()">U</div>
+                <div class="user-dropdown" id="userDropdown">
+                    <a href="profile.html" class="dropdown-item"><i class="fas fa-user"></i> Meu Perfil</a>
+                    <a href="user-systems.html" class="dropdown-item"><i class="fas fa-desktop"></i> Meus Sistemas</a>
+                    <a href="user-plans.html" class="dropdown-item"><i class="fas fa-credit-card"></i> Meus Planos</a>
+                    <a href="settings.html" class="dropdown-item"><i class="fas fa-cog"></i> Configurações</a>
+                    <div class="dropdown-divider"></div>
+                    <a href="#" class="dropdown-item" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Sair</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-dash-v2">
+        <h1 class="title-dash-v2 syne">Meu Perfil</h1>
+        <div class="main-content">
+            <div class="profile-grid">
+                <aside class="profile-sidebar">
+                    <div class="profile-nav-card">
+                        <a href="#geral" class="profile-nav-item active"><i class="fas fa-user"></i> Dados Pessoais</a>
+                        <a href="#negocio" class="profile-nav-item"><i class="fas fa-store"></i> Meu Negócio</a>
+                        <a href="#endereco" class="profile-nav-item"><i class="fas fa-map-marker-alt"></i> Localização</a>
+                        <a href="#seguranca" class="profile-nav-item"><i class="fas fa-shield-alt"></i> Segurança</a>
+                    </div>
+                    <div class="profile-nav-card" style="padding: 20px; text-align: center;">
+                        <p style="font-size: 12px; color: var(--gray); margin-bottom: 8px;">Status do Plano</p>
+                        <div class="badge-success" style="justify-content: center;">
+                            <i class="fas fa-check-circle"></i> Plano Pro Ativo
+                        </div>
+                    </div>
+                </aside>
+                <div class="profile-content">
                 <section id="geral" class="section-card">
                     <h2 class="section-title">Dados Pessoais</h2>
                     
@@ -472,19 +507,41 @@ on   t lass="profile-content">
                 </section>
             </div>
         </div>
+        </div>
     </main>
 
+    <script src="../js/mobile-nav.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const userStr = localStorage.getItem('qrchef_user');
             if (userStr) {
                 const user = JSON.parse(userStr);
+                const nameEl = document.getElementById('uName');
+                const emailEl = document.getElementById('uEmail');
+                if (nameEl) nameEl.textContent = user.name;
+                if (emailEl) emailEl.textContent = user.email;
                 document.getElementById('inpNome').value = user.name.split(' ')[0];
                 document.getElementById('inpEmail').value = user.email;
                 const initial = user.name.charAt(0).toUpperCase();
-                document.querySelectorAll('.avatar-circle, #largeInitial').forEach(el => el.textContent = initial);
+                document.querySelectorAll('.avatar-circle, .dash-avatar-v2, #largeInitial, #uAvatar').forEach(el => el.textContent = initial);
             }
         });
+
+        function toggleUserMenu() {
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('show');
+            document.addEventListener('click', function closeMenu(e) {
+                if (!e.target.closest('.dash-user-section')) {
+                    dropdown.classList.remove('show');
+                    document.removeEventListener('click', closeMenu);
+                }
+            });
+        }
+
+        function logout() {
+            localStorage.removeItem('qrchef_user');
+            window.location.href = 'login.html';
+        }
     </script>
 </body>
 </html>

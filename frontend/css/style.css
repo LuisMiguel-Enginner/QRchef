@@ -841,10 +841,20 @@ footer {
     .auth-card {
         padding: 48px 24px;
     }
+
+    .plans-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .plan-card.featured {
+        transform: scale(1);
+    }
+
+    .footer-content {
+        flex-direction: column;
+        gap: 40px;
+    }
 }
-    .plans-grid { grid-template-columns: 1fr; }
-    .plan-card.featured { transform: scale(1); }
-    .footer-content { grid-template-columns: 1fr; gap: 40px; }
 
 /* --- Notifications --- */
 .notification-container {
