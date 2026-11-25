@@ -79,18 +79,30 @@ app.get('/admin/stats', async (c) => {
         // Total de Clientes (Usuários que não são administradores)
         const totalClients = await DB.prepare("SELECT COUNT(*) as count FROM users WHERE email NOT IN ('admin@sistema.com', 'adminsistema@sistema.com')").first()
         
-        // Receita Total (Soma da tabela sales)
-        const totalRevenue = await DB.prepare("SELECT SUM(amount) as total FROM sales").first()
+        const totalRevenue = await DB.prepare(`
+            SELECT
+                (SELECT COALESCE(SUM(amount), 0) FROM sales) +
+                (SELECT COALESCE(SUM(amount), 0) FROM purchase_requests WHERE status = 'approved')
+                as total
+        `).first()
         
         // Sistemas Ativos (Assinaturas com status 'active')
         const activeSystems = await DB.prepare("SELECT COUNT(*) as count FROM subscriptions WHERE status = 'active'").first()
 
-        // Atividade Recente (Últimas 5 vendas com nomes de usuários)
         const recentActivity = await DB.prepare(`
-            SELECT s.amount, s.created_at, u.name 
-            FROM sales s 
-            JOIN users u ON s.user_id = u.id 
-            ORDER BY s.created_at DESC LIMIT 5
+            SELECT amount, created_at, name
+            FROM (
+                SELECT s.amount, s.created_at, u.name
+                FROM sales s
+                JOIN users u ON s.user_id = u.id
+                UNION ALL
+                SELECT pr.amount, COALESCE(pr.approved_at, pr.created_at) as created_at, u.name
+                FROM purchase_requests pr
+                JOIN users u ON pr.user_id = u.id
+                WHERE pr.status = 'approved'
+            )
+            ORDER BY created_at DESC
+            LIMIT 5
         `).all()
 
         return c.json({
@@ -131,10 +143,16 @@ app.delete('/admin/clients/:id', async (c) => {
     const id = c.req.param('id')
     const { DB } = c.env
     try {
-        // Deleta assinaturas primeiro por causa da Foreign Key
-        await DB.prepare("DELETE FROM subscriptions WHERE user_id = ?").bind(id).run()
-        // Deleta as vendas relacionadas
+        await DB.prepare(`
+            DELETE FROM menu_items
+            WHERE restaurant_id IN (SELECT id FROM restaurants WHERE user_id = ?)
+        `).bind(id).run()
+        await DB.prepare("DELETE FROM restaurants WHERE user_id = ?").bind(id).run()
+        await DB.prepare("DELETE FROM purchase_requests WHERE user_id = ?").bind(id).run()
+        await DB.prepare("DELETE FROM system_purchases WHERE user_id = ?").bind(id).run()
+        await DB.prepare("DELETE FROM support_tickets WHERE user_id = ?").bind(id).run()
         await DB.prepare("DELETE FROM sales WHERE user_id = ?").bind(id).run()
+        await DB.prepare("DELETE FROM subscriptions WHERE user_id = ?").bind(id).run()
         // Por fim, deleta o usuário
         await DB.prepare("DELETE FROM users WHERE id = ?").bind(id).run()
         
@@ -502,6 +520,27 @@ app.get('/restaurant/mine', async (c) => {
 }); 
 
 // ─── ADICIONAR ITEM AO CARDÁPIO ─────────────────────────────────────────────── 
+app.get('/restaurant/:slug/items', async (c) => {
+  const user = await getUserFromToken(c);
+  if (!user) return c.json({ success: false, message: 'Não autenticado.' }, 401);
+
+  const { DB } = c.env;
+  const restaurant = await DB.prepare(
+    'SELECT id FROM restaurants WHERE slug = ? AND user_id = ?'
+  ).bind(c.req.param('slug'), user.id).first();
+
+  if (!restaurant) return c.json({ success: false, message: 'Restaurante não encontrado.' }, 404);
+
+  const { results } = await DB.prepare(`
+    SELECT id, categoria, nome, descricao, preco, foto_url, disponivel
+    FROM menu_items
+    WHERE restaurant_id = ?
+    ORDER BY categoria, nome
+  `).bind(restaurant.id).all();
+
+  return c.json({ success: true, items: results || [] });
+});
+
 app.post('/restaurant/:slug/items', async (c) => { 
   const email = getUserIdFromToken(c); 
   if (!email) return c.json({ success: false, message: 'Não autenticado.' }, 401); 
@@ -509,6 +548,13 @@ app.post('/restaurant/:slug/items', async (c) => {
   const slug = c.req.param('slug'); 
   const { nome, descricao, preco, categoria, foto_url } = await c.req.json(); 
   const { DB } = c.env; 
+  const numericPrice = Number(preco);
+
+  if (typeof nome !== 'string' || !nome.trim() ||
+      typeof categoria !== 'string' || !categoria.trim() ||
+      preco === '' || preco == null || !Number.isFinite(numericPrice) || numericPrice < 0) {
+    return c.json({ success: false, message: 'Informe nome, categoria e um preço válido.' }, 400);
+  }
 
   const user = await DB.prepare('SELECT id FROM users WHERE email = ?').bind(email).first();
   if (!user) return c.json({ success: false, message: 'Usuário não encontrado.' }, 404);
@@ -533,10 +579,65 @@ app.post('/restaurant/:slug/items', async (c) => {
 
   await DB.prepare( 
     'INSERT INTO menu_items (restaurant_id, categoria, nome, descricao, preco, foto_url) VALUES (?, ?, ?, ?, ?, ?)' 
-  ).bind(restaurant.id, categoria, nome, descricao, preco, foto_url || null).run(); 
+  ).bind(restaurant.id, categoria.trim(), nome.trim(), descricao || null, numericPrice, foto_url || null).run();
 
   return c.json({ success: true, message: 'Item adicionado!' }); 
 }); 
+
+app.put('/restaurant/:slug/items/:itemId', async (c) => {
+  const user = await getUserFromToken(c);
+  if (!user) return c.json({ success: false, message: 'Não autenticado.' }, 401);
+
+  const { nome, descricao, preco, categoria, foto_url } = await c.req.json();
+  const numericPrice = Number(preco);
+  if (typeof nome !== 'string' || !nome.trim() ||
+      typeof categoria !== 'string' || !categoria.trim() ||
+      preco === '' || preco == null || !Number.isFinite(numericPrice) || numericPrice < 0) {
+    return c.json({ success: false, message: 'Informe nome, categoria e um preço válido.' }, 400);
+  }
+
+  const itemId = c.req.param('itemId');
+  if (!/^\d+$/.test(itemId)) return c.json({ success: false, message: 'Item inválido.' }, 400);
+
+  const { DB } = c.env;
+  const restaurant = await DB.prepare(
+    'SELECT id FROM restaurants WHERE slug = ? AND user_id = ?'
+  ).bind(c.req.param('slug'), user.id).first();
+  if (!restaurant) return c.json({ success: false, message: 'Restaurante não encontrado.' }, 404);
+
+  const result = await DB.prepare(`
+    UPDATE menu_items
+    SET nome = ?, categoria = ?, descricao = ?, preco = ?, foto_url = ?
+    WHERE id = ? AND restaurant_id = ?
+  `).bind(
+    nome.trim(), categoria.trim(), descricao || null, numericPrice, foto_url || null,
+    itemId, restaurant.id
+  ).run();
+
+  if (!result.meta.changes) return c.json({ success: false, message: 'Item não encontrado.' }, 404);
+  return c.json({ success: true, message: 'Item atualizado.' });
+});
+
+app.delete('/restaurant/:slug/items/:itemId', async (c) => {
+  const user = await getUserFromToken(c);
+  if (!user) return c.json({ success: false, message: 'Não autenticado.' }, 401);
+
+  const itemId = c.req.param('itemId');
+  if (!/^\d+$/.test(itemId)) return c.json({ success: false, message: 'Item inválido.' }, 400);
+
+  const { DB } = c.env;
+  const restaurant = await DB.prepare(
+    'SELECT id FROM restaurants WHERE slug = ? AND user_id = ?'
+  ).bind(c.req.param('slug'), user.id).first();
+  if (!restaurant) return c.json({ success: false, message: 'Restaurante não encontrado.' }, 404);
+
+  const result = await DB.prepare(
+    'DELETE FROM menu_items WHERE id = ? AND restaurant_id = ?'
+  ).bind(itemId, restaurant.id).run();
+
+  if (!result.meta.changes) return c.json({ success: false, message: 'Item não encontrado.' }, 404);
+  return c.json({ success: true, message: 'Item excluído.' });
+});
 
 // ─── CARDÁPIO PÚBLICO (o que o cliente final vê) ───────────────────────────── 
 app.get('/cardapio/:slug', async (c) => { 

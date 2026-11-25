@@ -40,7 +40,14 @@ CREATE TABLE IF NOT EXISTS support_tickets (
 );
 
 -- Inserindo alguns modelos iniciais de demonstração
-INSERT OR IGNORE INTO menu_templates (name, description, base_price, category) VALUES 
-('Elite Gastronomy', 'Design minimalista para alta gastronomia.', 189.00, 'Premium'),
-('Quick Bite Express', 'Focado em conversão para Fast Food.', 99.00, 'Pro'),
-('Coffee & Co', 'Layout acolhedor para cafeterias.', 49.00, 'Basic');
+INSERT INTO menu_templates (name, base_price, category)
+SELECT 'Elite Gastronomy', 189.00, 'Premium'
+WHERE NOT EXISTS (SELECT 1 FROM menu_templates WHERE name = 'Elite Gastronomy');
+
+INSERT INTO menu_templates (name, base_price, category)
+SELECT 'Quick Bite Express', 99.00, 'Pro'
+WHERE NOT EXISTS (SELECT 1 FROM menu_templates WHERE name = 'Quick Bite Express');
+
+INSERT INTO menu_templates (name, base_price, category)
+SELECT 'Coffee & Co', 49.00, 'Basic'
+WHERE NOT EXISTS (SELECT 1 FROM menu_templates WHERE name = 'Coffee & Co');

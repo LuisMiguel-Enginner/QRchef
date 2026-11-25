@@ -1,2 +1,2 @@
--- Template do cardápio vinculado ao restaurante
-ALTER TABLE restaurants ADD COLUMN template_id TEXT;
+-- template_id is created with restaurants in 0002 for new databases.
+-- Existing databases already have this column.

@@ -147,6 +147,27 @@
             font-weight: 800;
             color: white;
         }
+        .item-actions { display: flex; gap: 8px; }
+        .item-actions button {
+            padding: 10px 12px;
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 10px;
+            background: rgba(255,255,255,0.06);
+            color: white;
+            cursor: pointer;
+        }
+        .item-actions button:hover { background: var(--primary); }
+        .form-actions { grid-column: span 2; display: flex; gap: 12px; }
+        .form-actions .btn-add { flex: 1; }
+        .btn-cancel {
+            padding: 14px 20px;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 14px;
+            background: transparent;
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+        }
         /* Profile Area */
         .header-profile { display: flex; align-items: center; gap: 15px; padding-left: 20px; border-left: 1px solid rgba(255,255,255,0.1); }
         .avatar-circle { 
@@ -325,15 +346,15 @@
         </div>
 
         <div class="add-item-card">
-            <h2 style="font-size:20px; font-weight:800;">Adicionar Novo Item</h2>
+            <h2 id="formTitle" style="font-size:20px; font-weight:800;">Adicionar Novo Item</h2>
             <div class="form-grid">
                 <div class="form-group">
                     <label>Nome do Produto</label>
-                    <input id="itemNome" type="text" placeholder="Ex: Pizza Calabresa">
+                    <input id="itemNome" type="text" placeholder="Ex: Pizza Calabresa" required>
                 </div>
                 <div class="form-group">
                     <label>Categoria</label>
-                    <input id="itemCat" type="text" placeholder="Ex: Pizzas, Bebidas, Sobremesas">
+                    <input id="itemCat" type="text" placeholder="Ex: Pizzas, Bebidas, Sobremesas" required>
                 </div>
                 <div class="form-group" style="grid-column: span 2;">
                     <label>Descrição (Ingredientes)</label>
@@ -341,15 +362,18 @@
                 </div>
                 <div class="form-group">
                     <label>Preço (R$)</label>
-                    <input id="itemPreco" type="number" step="0.01" placeholder="0.00">
+                    <input id="itemPreco" type="number" min="0" step="0.01" placeholder="0.00" required>
                 </div>
                 <div class="form-group">
                     <label>URL da Imagem (Opcional)</label>
                     <input id="itemFoto" type="text" placeholder="https://imagem.jpg">
                 </div>
-                <button onclick="salvarItem()" id="btnSalvar" class="btn-add">
-                    <i class="fas fa-plus-circle"></i> Adicionar ao Cardápio
-                </button>
+                <div class="form-actions">
+                    <button type="button" onclick="salvarItem()" id="btnSalvar" class="btn-add">
+                        <i class="fas fa-plus-circle"></i> Adicionar ao Cardápio
+                    </button>
+                    <button type="button" onclick="cancelarEdicao()" id="btnCancelar" class="btn-cancel" hidden>Cancelar</button>
+                </div>
             </div>
         </div>
 
@@ -365,6 +389,7 @@
         const urlParams = new URLSearchParams(window.location.search);
         const slug = urlParams.get('slug');
         const token = localStorage.getItem('qrchef_token');
+        let itemEditId = null;
 
         function toggleDrawer() {
             const drawer = document.getElementById('sideDrawer');
@@ -399,47 +424,107 @@
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await res.json();
+                if (!res.ok || !data.success) throw new Error(data.message || 'Não foi possível carregar o restaurante.');
                 const restaurant = data.restaurants.find(r => r.slug === slug);
                 
                 if (restaurant) {
                     document.getElementById('resNome').textContent = restaurant.nome;
                     const link = `https://qrchef-worker.luismiguelgomesoliveira-014.workers.dev/cardapio/${slug}`;
                     document.getElementById('btnVerCardapio').href = link;
+                } else {
+                    throw new Error('Restaurante não encontrado para esta conta.');
                 }
 
-                carregarItens();
+                await carregarItens();
             } catch (e) {
                 console.error(e);
+                document.getElementById('listaItens').textContent = e.message || 'Erro ao carregar os dados.';
             }
         }
 
         async function carregarItens() {
-            const res = await fetch(`${API}/cardapio/${slug}`);
-            // Como a rota /cardapio retorna HTML, vamos precisar de uma rota que retorne JSON
-            // Mas para agilizar, vamos buscar do banco via uma nova lógica ou simular
-            // Por enquanto, vamos apenas mostrar que salvou com sucesso
-            document.getElementById('listaItens').innerHTML = '<p style="color:#888; text-align:center; padding:40px;">Seus itens aparecem instantaneamente no link público do cardápio.</p>';
+            const res = await fetch(`${API}/restaurant/${encodeURIComponent(slug)}/items`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (!res.ok || !data.success) throw new Error(data.message || 'Não foi possível carregar os itens.');
+
+            const lista = document.getElementById('listaItens');
+            lista.replaceChildren();
+            if (!data.items.length) {
+                lista.textContent = 'Nenhum item cadastrado ainda.';
+                return;
+            }
+
+            data.items.forEach(item => {
+                const row = document.createElement('div');
+                row.className = 'item-row';
+
+                if (item.foto_url) {
+                    const image = document.createElement('img');
+                    image.className = 'item-image';
+                    image.src = item.foto_url;
+                    image.alt = item.nome;
+                    row.appendChild(image);
+                }
+
+                const details = document.createElement('div');
+                details.className = 'item-details';
+                const name = document.createElement('div');
+                name.className = 'item-name';
+                name.textContent = item.nome;
+                const category = document.createElement('div');
+                category.className = 'item-cat';
+                category.textContent = item.categoria;
+                const description = document.createElement('div');
+                description.textContent = item.descricao || '';
+                const price = document.createElement('div');
+                price.className = 'item-price';
+                price.textContent = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.preco);
+                details.append(name, category, description, price);
+                row.appendChild(details);
+
+                const actions = document.createElement('div');
+                actions.className = 'item-actions';
+                const editButton = document.createElement('button');
+                editButton.type = 'button';
+                editButton.title = 'Editar item';
+                editButton.innerHTML = '<i class="fas fa-pen"></i>';
+                editButton.addEventListener('click', () => editarItem(item));
+                const deleteButton = document.createElement('button');
+                deleteButton.type = 'button';
+                deleteButton.title = 'Excluir item';
+                deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
+                deleteButton.addEventListener('click', () => excluirItem(item));
+                actions.append(editButton, deleteButton);
+                row.appendChild(actions);
+                lista.appendChild(row);
+            });
         }
 
         async function salvarItem() {
-            const nome = document.getElementById('itemNome').value;
-            const categoria = document.getElementById('itemCat').value;
-            const descricao = document.getElementById('itemDesc').value;
-            const preco = document.getElementById('itemPreco').value;
-            const foto_url = document.getElementById('itemFoto').value;
+            const nome = document.getElementById('itemNome').value.trim();
+            const categoria = document.getElementById('itemCat').value.trim();
+            const descricao = document.getElementById('itemDesc').value.trim();
+            const preco = Number(document.getElementById('itemPreco').value);
+            const foto_url = document.getElementById('itemFoto').value.trim();
 
-            if (!nome || !categoria || !preco) {
-                alert('Preencha nome, categoria e preço!');
+            if (!nome || !categoria || !Number.isFinite(preco) || preco < 0 ||
+                document.getElementById('itemPreco').value === '') {
+                alert('Informe nome, categoria e um preço válido.');
                 return;
             }
 
             const btn = document.getElementById('btnSalvar');
             btn.disabled = true;
-            btn.textContent = 'Salvando...';
+            const editando = itemEditId !== null;
 
             try {
-                const res = await fetch(`${API}/restaurant/${slug}/items`, {
-                    method: 'POST',
+                const endpoint = editando
+                    ? `${API}/restaurant/${encodeURIComponent(slug)}/items/${itemEditId}`
+                    : `${API}/restaurant/${encodeURIComponent(slug)}/items`;
+                const res = await fetch(endpoint, {
+                    method: editando ? 'PUT' : 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
@@ -448,21 +533,63 @@
                 });
 
                 const data = await res.json();
-                if (data.success) {
-                    alert('Item adicionado com sucesso!');
-                    // Limpa form
-                    document.getElementById('itemNome').value = '';
-                    document.getElementById('itemDesc').value = '';
-                    document.getElementById('itemPreco').value = '';
-                    document.getElementById('itemFoto').value = '';
-                } else {
-                    alert(data.message);
-                }
+                if (!res.ok || !data.success) throw new Error(data.message || 'Não foi possível salvar o item.');
+                alert(editando ? 'Item atualizado com sucesso!' : 'Item adicionado com sucesso!');
+                cancelarEdicao();
+                await carregarItens();
             } catch (e) {
-                alert('Erro ao conectar ao servidor.');
+                alert(e.message || 'Erro ao conectar ao servidor.');
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-plus-circle"></i> Adicionar ao Cardápio';
+                atualizarBotaoSalvar();
+            }
+        }
+
+        function editarItem(item) {
+            itemEditId = item.id;
+            document.getElementById('itemNome').value = item.nome || '';
+            document.getElementById('itemCat').value = item.categoria || '';
+            document.getElementById('itemDesc').value = item.descricao || '';
+            document.getElementById('itemPreco').value = item.preco;
+            document.getElementById('itemFoto').value = item.foto_url || '';
+            document.getElementById('formTitle').textContent = 'Editar Item';
+            document.getElementById('btnCancelar').hidden = false;
+            atualizarBotaoSalvar();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function cancelarEdicao() {
+            itemEditId = null;
+            document.getElementById('itemNome').value = '';
+            document.getElementById('itemCat').value = '';
+            document.getElementById('itemDesc').value = '';
+            document.getElementById('itemPreco').value = '';
+            document.getElementById('itemFoto').value = '';
+            document.getElementById('formTitle').textContent = 'Adicionar Novo Item';
+            document.getElementById('btnCancelar').hidden = true;
+            atualizarBotaoSalvar();
+        }
+
+        function atualizarBotaoSalvar() {
+            const btn = document.getElementById('btnSalvar');
+            btn.innerHTML = itemEditId === null
+                ? '<i class="fas fa-plus-circle"></i> Adicionar ao Cardápio'
+                : '<i class="fas fa-save"></i> Salvar Alterações';
+        }
+
+        async function excluirItem(item) {
+            if (!confirm(`Excluir "${item.nome}" do cardápio?`)) return;
+            try {
+                const res = await fetch(`${API}/restaurant/${encodeURIComponent(slug)}/items/${item.id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) throw new Error(data.message || 'Não foi possível excluir o item.');
+                if (itemEditId === item.id) cancelarEdicao();
+                await carregarItens();
+            } catch (e) {
+                alert(e.message || 'Erro ao conectar ao servidor.');
             }
         }
 
